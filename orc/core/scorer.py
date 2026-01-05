@@ -1,0 +1,1 @@
+# Entropy & health scoring placeholder

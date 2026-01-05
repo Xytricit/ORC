@@ -1,0 +1,6 @@
+# Known code patterns and antipatterns for ORC
+patterns:
+  - name: Singleton
+    description: Detects singleton pattern usage
+  - name: God Object
+    description: Detects god object antipattern
