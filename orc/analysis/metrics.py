@@ -1,1 +1,0 @@
-# Code complexity metrics placeholder

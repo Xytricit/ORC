@@ -1,0 +1,72 @@
+# Code pattern definitions for ORC analysis
+patterns:
+  # Antipatterns
+  - name: "God Object"
+    description: "Class with too many responsibilities"
+    detection_rules:
+      - type: "metric"
+        field: "method_count"
+        operator: ">"
+        threshold: 20
+      - type: "metric"
+        field: "lines_of_code"
+        operator: ">"
+        threshold: 500
+
+  - name: "Long Method"
+    description: "Method with excessive lines of code"
+    detection_rules:
+      - type: "metric"
+        field: "lines_of_code"
+        operator: ">"
+        threshold: 50
+
+  - name: "Complex Method"
+    description: "Method with high cyclomatic complexity"
+    detection_rules:
+      - type: "metric"
+        field: "complexity"
+        operator: ">"
+        threshold: 10
+
+  - name: "Data Clump"
+    description: "Repeated parameter groups across methods"
+    detection_rules:
+      - type: "pattern"
+        field: "parameters"
+        operator: "similar"
+        threshold: 0.8
+
+  - name: "Feature Envy"
+    description: "Method that uses another class's data more than its own"
+    detection_rules:
+      - type: "pattern"
+        field: "external_accesses"
+        operator: ">"
+        threshold: 5
+
+  # Good patterns
+  - name: "Factory Pattern"
+    description: "Object creation pattern"
+    detection_rules:
+      - type: "pattern"
+        field: "method_name"
+        operator: "matches"
+        pattern: "create.*|make.*|build.*"
+
+  - name: "Observer Pattern"
+    description: "Event notification pattern"
+    detection_rules:
+      - type: "pattern"
+        field: "method_name"
+        operator: "matches"
+        pattern: "subscribe|notify|update"
+
+  # Duplication patterns
+  - name: "Code Duplication"
+    description: "Similar code blocks across files"
+    detection_rules:
+      - type: "similarity"
+        field: "ast_structure"
+        operator: ">"
+        threshold: 0.85

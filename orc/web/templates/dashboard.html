@@ -1,1 +1,281 @@
-<!-- Dashboard template placeholder -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORC Dashboard - Codebase Intelligence</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="{{ url_for('static', filename='images/orc-logo.svg') }}" alt="ORC Logo" height="30" class="me-2">
+                <span>ORC - Codebase Intelligence</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link active" href="/">Dashboard</a>
+                    <a class="nav-link" href="/graph">Graph</a>
+                    <a class="nav-link" href="/complexity">Complexity</a>
+                    <a class="nav-link" href="/recommendations">Recommendations</a>
+                    <a class="nav-link" href="#" id="analyze-btn">
+                        <i class="fas fa-sync-alt me-1"></i>Re-analyze
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container animate-fade-in">
+        <div class="page-title">
+            <img src="{{ url_for('static', filename='images/orc-logo.svg') }}" alt="ORC Logo" height="60">
+            <div>
+                <h1>Codebase Overview</h1>
+                <p class="lead">Analysis of your Python codebase with actionable insights</p>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card primary h-100">
+                    <div class="stat-icon text-primary">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <div class="stat-number">{{ total_files }}</div>
+                    <div class="stat-label">Total Files</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card success h-100">
+                    <div class="stat-icon text-success">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="stat-number">{{ total_functions }}</div>
+                    <div class="stat-label">Total Functions</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card info h-100">
+                    <div class="stat-icon text-info">
+                        <i class="fas fa-align-left"></i>
+                    </div>
+                    <div class="stat-number">{{ total_lines }}</div>
+                    <div class="stat-label">Total Lines</div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card stat-card warning h-100">
+                    <div class="stat-icon text-warning">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="stat-number">{{ summary.complexity_score | round(1) or 0.0 }}</div>
+                    <div class="stat-label">Avg Complexity</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-xl-8 col-lg-7">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Code Metrics Overview</h6>
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow">
+                                <a class="dropdown-item" href="#"><i class="fas fa-download me-2"></i>Export Data</a>
+                                <a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>Detailed Report</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="metricsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Analysis Summary</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-6 mb-4">
+                                <div class="small font-weight-bold">Avg Functions/File</div>
+                                <div class="h5 mb-0 mr-3">{{ "%.2f"|format(summary.avg_functions_per_file or 0) }}</div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="small font-weight-bold">Avg Lines/File</div>
+                                <div class="h5 mb-0 mr-3">{{ "%.2f"|format(summary.avg_lines_per_file or 0) }}</div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="small font-weight-bold">Issues Found</div>
+                                <div class="h5 mb-0 mr-3 text-danger">{{ summary.estimated_issues or 0 }}</div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="small font-weight-bold">Health Score</div>
+                                <div class="h5 mb-0 mr-3 text-success">84%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Recent Activity</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-file-code"></i>
+                                </div>
+                                <div>
+                                    <div class="small font-weight-bold">New Analysis</div>
+                                    <div class="text-xs text-muted">Completed 2 hours ago</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <div class="small font-weight-bold">Optimization Found</div>
+                                    <div class="text-xs text-muted">3 suggestions available</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <div class="small font-weight-bold">Potential Issues</div>
+                                    <div class="text-xs text-muted">5 high complexity functions</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Top Complex Functions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th>Function</th>
+                                        <th>File</th>
+                                        <th>Complexity</th>
+                                        <th>Lines</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for func in complexity_report %}
+                                    <tr>
+                                        <td>{{ func.function }}</td>
+                                        <td>{{ func.file.split('/')[-1] }}</td>
+                                        <td>
+                                            <span class="badge badge-complexity-high">{{ func.time_complexity }}</span>
+                                        </td>
+                                        <td>{{ func.complexity_score }}</td>
+                                        <td><span class="badge bg-warning">Needs Review</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+            <div class="copyright text-center my-auto">
+                <span>Copyright &copy; ORC 2023 | Codebase Intelligence Platform</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Metrics chart
+        const ctx = document.getElementById('metricsChart').getContext('2d');
+        const metricsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Files',
+                    data: [{{ total_files or 0 }}, 12, 19, 15, {{ total_files or 0 }}, 18],
+                    borderColor: 'rgb(67, 97, 238)',
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Functions',
+                    data: [{{ total_functions or 0 }}, 30, 24, 35, {{ total_functions or 0 }}, 40],
+                    borderColor: 'rgb(76, 201, 240)',
+                    backgroundColor: 'rgba(76, 201, 240, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Simulate re-analysis button functionality
+        document.getElementById('analyze-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            const btn = this;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Analyzing...';
+
+            // Simulate analysis process
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                alert('Codebase analysis completed!');
+            }, 2000);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

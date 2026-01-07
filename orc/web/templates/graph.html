@@ -1,1 +1,144 @@
-<!-- Graph visualization template placeholder -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORC - Dependency Graph</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <style type="text/css">
+        #graph-container {
+            width: 100%;
+            height: 700px;
+            border: 1px solid #d3d3d3;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="{{ url_for('static', filename='images/orc-logo.svg') }}" alt="ORC Logo" height="30" class="me-2">
+                <span>ORC - Codebase Intelligence</span>
+            </a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="/">Dashboard</a>
+                <a class="nav-link active" href="/graph">Graph</a>
+                <a class="nav-link" href="/complexity">Complexity</a>
+                <a class="nav-link" href="/recommendations">Recommendations</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center">
+                    <img src="{{ url_for('static', filename='images/orc-logo.svg') }}" alt="ORC Logo" height="60" class="me-3">
+                    <div>
+                        <h1>Dependency Graph Visualization</h1>
+                        <p class="lead">Visual representation of module dependencies in your codebase</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div id="graph-container"></div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Graph Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>This graph shows the dependencies between modules in your codebase:</p>
+                        <ul>
+                            <li><strong>Nodes</strong> represent modules/files</li>
+                            <li><strong>Edges</strong> represent import dependencies</li>
+                            <li><strong>Node size</strong> is proportional to the number of functions in the module</li>
+                            <li><strong>Node color</strong> indicates module complexity (blue for high, green for low)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Create an array with nodes
+        var nodes = new vis.DataSet([
+            {% for node in nodes %}
+            {
+                id: "{{ node.id }}",
+                label: "{{ node.label }}",
+                size: {{ node.size }},
+                color: "{{ node.color }}",
+                title: "{{ node.title }}"
+            },
+            {% endfor %}
+        ]);
+
+        // Create an array with edges
+        var edges = new vis.DataSet([
+            {% for edge in edges %}
+            {
+                from: "{{ edge.from }}",
+                to: "{{ edge.to }}"
+            },
+            {% endfor %}
+        ]);
+
+        // Create a network
+        var container = document.getElementById('graph-container');
+
+        // Provide the data in the vis format
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+
+        // Set the options
+        var options = {
+            nodes: {
+                shape: 'dot',
+                scaling: {
+                    min: 10,
+                    max: 30
+                }
+            },
+            edges: {
+                arrows: {
+                    to: { enabled: true, scaleFactor: 0.75 }
+                },
+                smooth: { enabled: true, type: 'curvedCW', roundness: 0.2 }
+            },
+            physics: {
+                enabled: true,
+                stabilization: { iterations: 100 },
+                barnesHut: {
+                    gravitationalConstant: -8000,
+                    springConstant: 0.001,
+                    springLength: 200
+                }
+            },
+            interaction: {
+                tooltipDelay: 200,
+                hideEdgesOnDrag: false
+            }
+        };
+
+        // Initialize the network
+        var network = new vis.Network(container, data, options);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

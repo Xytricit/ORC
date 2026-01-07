@@ -1,0 +1,83 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Pytest
+.pytest_cache/
+
+# Mypy
+.mypy_cache/
+
+# Coverage
+.coverage
+coverage.xml
+
+# PyCharm / VSCode
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python egg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Local env files
+.env
+.env.*
+
+# One-off project artifacts
+orc.egg-info/
+*.log
+
+# Cache and metadata
+.cache/
+__MACOSX/
+
+# pip cache
+pip-wheel-metadata/
+
+# node modules (if any front-end parts exist)
+node_modules/
+
+# ORC specific directories
+.orc/
+.orcignore
+.orcrc
+
+# Qodo specific directories
+.qodo/
+
+# Zencoder specific directories
+.zencoder/
+
+# Zenflow specific directories
+.zenflow/
+
+# Executable files
+*.exe
