@@ -72,22 +72,53 @@ orc hotspots           # Find performance issues
 - Python 3.8 or higher
 - pip package manager
 
-### Install from PyPI (Coming Soon)
+### Option 1: Install from PyPI (Recommended)
 ```bash
+# Install the latest stable release
 pip install orc-cli
+
+# Verify installation
+orc --version
 ```
 
-### Install from Source
+### Option 2: Install from TestPyPI (Beta/Testing)
 ```bash
-# Clone the repository
+# Install from TestPyPI for testing new features
+pip install -i https://test.pypi.org/simple/ orc-cli==2.0.0
+
+# Verify installation
+orc --version
+```
+
+### Option 3: Install from GitHub (Latest Development)
+```bash
+# Install directly from GitHub main branch
+pip install git+https://github.com/xytricit/orc.git
+
+# Or clone and install in development mode
 git clone https://github.com/xytricit/orc.git
 cd orc
-
-# Install dependencies
 pip install -e .
 
 # Verify installation
 orc --version
+```
+
+### Optional: Install with Web Interface (Local Development)
+```bash
+# If you want to run the web interface locally
+pip install orc-cli[web]
+
+# Note: The production web app is deployed separately at [your-domain]
+```
+
+### Upgrading
+```bash
+# Upgrade to the latest version
+pip install --upgrade orc-cli
+
+# Or from TestPyPI
+pip install --upgrade -i https://test.pypi.org/simple/ orc-cli
 ```
 
 ---
