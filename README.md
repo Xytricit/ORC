@@ -1,4 +1,4 @@
-# 🔥 ORC - Optimization & Refactoring Catalyst
+# ORC - Optimization & Refactoring Catalyst
 
 <div align="center">
 
@@ -16,24 +16,24 @@
 
 ---
 
-## 🎯 What is ORC?
+## What is ORC?
 
 ORC is an intelligent code analysis and refactoring assistant that combines powerful static analysis with AI to help you understand, optimize, and improve your codebase. Whether you're dealing with technical debt, trying to understand legacy code, or optimizing performance, ORC is your trusty companion.
 
 ### Why ORC?
 
-- 🧠 **AI-Powered Intelligence**: Chat with your codebase using natural language
-- 🔍 **Deep Analysis**: Find dead code, complexity hotspots, and performance issues
-- 🌐 **Beautiful Web Dashboard**: Visualize your code metrics and track improvements
-- ⚡ **Lightning Fast**: Efficiently indexes and analyzes large codebases
-- 🎨 **Modern UI**: Sleek black & green interface with real-time notifications
-- 🔒 **Privacy First**: All analysis runs locally, your code never leaves your machine
+- **AI-Powered Intelligence**: Chat with your codebase using natural language
+- **Deep Analysis**: Find dead code, complexity hotspots, and performance issues
+- **Beautiful Web Dashboard**: Visualize your code metrics and track improvements
+- **Lightning Fast**: Efficiently indexes and analyzes large codebases
+- **Modern UI**: Sleek black & green interface with real-time notifications
+- **Privacy First**: All analysis runs locally, your code never leaves your machine
 
 ---
 
-## ✨ Features
+## Features
 
-### 🤖 AI-Powered Code Chat
+### AI-Powered Code Chat
 ```bash
 orc
 > "Show me the most complex functions"
@@ -41,21 +41,21 @@ orc
 > "Explain what the UserService class does"
 ```
 
-### 📊 Comprehensive Analysis
+### Comprehensive Analysis
 - **Dead Code Detection**: Find unused functions, classes, and imports
 - **Complexity Analysis**: Identify functions that need refactoring
 - **Dependency Mapping**: Visualize how your modules interact
 - **Performance Hotspots**: Pinpoint optimization opportunities
 - **Code Metrics**: Track LOC, cyclomatic complexity, and more
 
-### 🌐 Professional Web Interface
+### Professional Web Interface
 - **Interactive Dashboard**: Beautiful stats and visualizations
 - **Project Management**: Handle multiple codebases effortlessly
 - **AI Chat Interface**: Talk to your code through the web
 - **Analysis History**: Track improvements over time
 - **Smart Search**: Find documentation instantly with dropdown suggestions
 
-### 🔧 Developer-Friendly CLI
+### Developer-Friendly CLI
 ```bash
 orc index              # Index your codebase
 orc analyze            # Run full analysis
@@ -66,7 +66,7 @@ orc hotspots           # Find performance issues
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ### Prerequisites
 - Python 3.8 or higher
@@ -123,7 +123,7 @@ pip install --upgrade -i https://test.pypi.org/simple/ orc-cli
 
 ---
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Authenticate
 ```bash
@@ -151,21 +151,21 @@ Now chat with your codebase using natural language!
 
 ---
 
-## 📖 Documentation
+## Documentation
 
-### 📚 User Guides
+### User Guides
 - [Getting Started](docs/getting_started.md) - First steps with ORC
 - [CLI Reference](docs/cli/README.md) - Complete command documentation
 - [Web Interface Guide](docs/web/README.md) - Using the dashboard
 - [API Documentation](docs/api/README.md) - Integrate ORC into your tools
 
-### 🎓 Tutorials
+### Tutorials
 - [Your First Analysis](docs/tutorials/first_analysis.md)
 - [Using AI Chat](docs/tutorials/ai_chat.md)
 - [Finding Dead Code](docs/tutorials/dead_code.md)
 - [Performance Optimization](docs/tutorials/performance.md)
 
-### 🔧 Advanced Topics
+### Advanced Topics
 - [Configuration](docs/configuration.md) - Customize ORC's behavior
 - [Custom Parsers](docs/custom_parsers.md) - Add support for new languages
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production setup
@@ -197,7 +197,7 @@ Now chat with your codebase using natural language!
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 We love contributions! Whether it's bug fixes, new features, or documentation improvements, all help is appreciated.
 
@@ -259,12 +259,12 @@ ORC is released under the [MIT License](LICENSE). Feel free to use it in your pr
 
 ---
 
-## 📞 Support & Community
+## Support & Community
 
-- 🐛 [Report a Bug](https://github.com/xytricit/orc/issues/new?template=bug_report.md)
-- 💡 [Request a Feature](https://github.com/xytricit/orc/issues/new?template=feature_request.md)
-- 💬 [Join Discord](https://discord.gg/orc-community) (Coming Soon)
-- 📧 [Email Us](mailto:andohbempahnanaakwasi@gmail.com)
+- [Report a Bug](https://github.com/xytricit/orc/issues/new?template=bug_report.md)
+- [Request a Feature](https://github.com/xytricit/orc/issues/new?template=feature_request.md)
+- [Join Discord](https://discord.gg/orc-community) (Coming Soon)
+- [Email Us](mailto:andohbempahnanaakwasi@gmail.com)
 
 ---
 
