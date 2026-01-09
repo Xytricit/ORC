@@ -1,0 +1,143 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}{{ project.name }}{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Project Header -->
+<div class="project-detail-header">
+    <div class="project-detail-title">
+        <h1 class="project-detail-name">{{ project.name }}</h1>
+        <div class="project-detail-actions">
+            <form method="POST" action="{{ url_for('projects.index_project', project_id=project.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-primary">
+                    {% if project.last_indexed %}Re-Index{% else %}Index Now{% endif %}
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('projects.delete', project_id=project.id) }}" 
+                  onsubmit="return confirm('Are you sure you want to delete this project?')" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+
+    {% if project.description %}
+    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">{{ project.description }}</p>
+    {% endif %}
+
+    <div class="project-detail-info">
+        <div class="project-info-item">
+            <span class="project-info-label">Path</span>
+            <span class="project-info-value">{{ project.path }}</span>
+        </div>
+        <div class="project-info-item">
+            <span class="project-info-label">Last Indexed</span>
+            <span class="project-info-value">
+                {% if project.last_indexed %}
+                    {{ project.last_indexed.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    Never
+                {% endif %}
+            </span>
+        </div>
+        <div class="project-info-item">
+            <span class="project-info-label">Created</span>
+            <span class="project-info-value">{{ project.created_at.strftime('%Y-%m-%d') }}</span>
+        </div>
+        <div class="project-info-item">
+            <span class="project-info-label">Status</span>
+            <span class="project-info-value">
+                <span class="badge {% if stats.is_indexed %}badge-success{% else %}badge-warning{% endif %}">
+                    {% if stats.is_indexed %}Indexed{% else %}Not Indexed{% endif %}
+                </span>
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if stats.is_indexed %}
+<!-- Project Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">FL</div>
+        </div>
+        <div class="stat-value">{{ stats.files }}</div>
+        <div class="stat-label">Files</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">FN</div>
+        </div>
+        <div class="stat-value">{{ stats.functions }}</div>
+        <div class="stat-label">Functions</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">CL</div>
+        </div>
+        <div class="stat-value">{{ stats.classes }}</div>
+        <div class="stat-label">Classes</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">LC</div>
+        </div>
+        <div class="stat-value">{{ stats.lines_of_code or 0 }}</div>
+        <div class="stat-label">Lines of Code</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <div class="section-header">
+        <h2 class="section-title">Quick Actions</h2>
+    </div>
+    <div class="actions-grid">
+        <a href="{{ url_for('analysis.run') }}?project={{ project.id }}" class="action-card">
+            <div class="action-icon">DC</div>
+            <div class="action-title">Dead Code</div>
+            <div class="action-description">Find unused code</div>
+        </a>
+
+        <a href="{{ url_for('analysis.run') }}?project={{ project.id }}&type=complexity" class="action-card">
+            <div class="action-icon">CX</div>
+            <div class="action-title">Complexity</div>
+            <div class="action-description">Analyze complexity</div>
+        </a>
+
+        <a href="{{ url_for('analysis.run') }}?project={{ project.id }}&type=security" class="action-card">
+            <div class="action-icon">SC</div>
+            <div class="action-title">Security</div>
+            <div class="action-description">Security scan</div>
+        </a>
+
+        <a href="{{ url_for('analysis.run') }}?project={{ project.id }}&type=dependencies" class="action-card">
+            <div class="action-icon">DP</div>
+            <div class="action-title">Dependencies</div>
+            <div class="action-description">Dependency analysis</div>
+        </a>
+    </div>
+</div>
+{% else %}
+<!-- Not Indexed State -->
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-state-icon">IN</div>
+        <h3 class="empty-state-title">Project Not Indexed</h3>
+        <p class="empty-state-description">
+            Index this project to start analyzing your codebase and unlock all ORC features.
+        </p>
+        <form method="POST" action="{{ url_for('projects.index_project', project_id=project.id) }}">
+            <button type="submit" class="btn btn-primary btn-lg">Index Project Now</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

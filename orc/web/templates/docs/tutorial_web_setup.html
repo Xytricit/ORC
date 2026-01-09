@@ -1,0 +1,128 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}Tutorial: Web Setup{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    .docs-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+    }
+    .step {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-left: 4px solid #00ff41;
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .step h2 {
+        margin-top: 0;
+        color: var(--text);
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>Tutorial: Setting Up the Web Interface</h1>
+        <p>Learn how to set up and use ORC's web dashboard.</p>
+
+        <div class="step">
+            <h2>Step 1: Start the Web Server</h2>
+            <p>The web server should already be running. If not, start it:</p>
+            <pre>python orc/web/app_new.py</pre>
+            <p>Visit: <code>http://127.0.0.1:5000</code></p>
+        </div>
+
+        <div class="step">
+            <h2>Step 2: Create an Account</h2>
+            <p>Click <strong>Sign Up</strong> and create your account with:</p>
+            <ul>
+                <li>Username</li>
+                <li>Email</li>
+                <li>Password</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h2>Step 3: Configure AI Provider</h2>
+            <p>Go to <strong>Settings > API Config</strong> and add your AI provider:</p>
+            <ol>
+                <li>Click <strong>Add Provider</strong></li>
+                <li>Choose provider (Groq recommended for free tier)</li>
+                <li>Enter your API key</li>
+                <li>Select model</li>
+                <li>Save and set as default</li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h2>Step 4: Generate CLI Token</h2>
+            <p>Go to <strong>Account</strong> page:</p>
+            <ol>
+                <li>Click <strong>Generate Token</strong></li>
+                <li>Copy the token</li>
+                <li>Use it with <code>orc login --token YOUR_TOKEN</code></li>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h2>Step 5: Connect CLI</h2>
+            <pre>orc login</pre>
+            <p>This will open your browser. Paste the token when prompted.</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 6: Your First Project</h2>
+            <p>Projects are auto-created when you run <code>orc</code> in a directory!</p>
+            <pre>cd your-project
+orc</pre>
+            <p>The project will appear in your web dashboard automatically.</p>
+        </div>
+
+        <h2>You're All Set!</h2>
+        <p>Now you can:</p>
+        <ul>
+            <li>View all projects in the web dashboard</li>
+            <li>Run analyses from the web interface</li>
+            <li>Use AI chat both in CLI and web</li>
+            <li>Track code quality over time</li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.tutorials') }}">← Back to Tutorials</a>
+        </div>
+</div>
+{% endblock %}

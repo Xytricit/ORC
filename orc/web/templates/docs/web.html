@@ -1,0 +1,107 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}Web Interface{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 30px;
+        margin-bottom: 15px;
+    }
+    .feature {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .feature h2 {
+        color: #00ff41;
+        margin-top: 0;
+    }
+    .feature ul {
+        margin: 10px 0;
+        padding-left: 25px;
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>Web Interface Documentation</h1>
+        <p>ORC's web interface provides a powerful visual way to explore and analyze your codebase.</p>
+
+        <div class="feature">
+            <h2>Dashboard</h2>
+            <p>Your home base showing:</p>
+            <ul>
+                <li>All your projects</li>
+                <li>Recent analyses</li>
+                <li>Quick stats</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h2>Projects</h2>
+            <p>Manage multiple codebases:</p>
+            <ul>
+                <li>Create projects manually or auto-created from CLI</li>
+                <li>View project statistics</li>
+                <li>Run analyses</li>
+                <li>Track changes over time</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h2>AI Chat</h2>
+            <p>Interactive chat interface to ask questions about your code in real-time.</p>
+        </div>
+
+        <div class="feature">
+            <h2>Settings</h2>
+            <p>Configure your ORC experience:</p>
+            <ul>
+                <li><strong>Account</strong> - Generate CLI tokens for authentication</li>
+                <li><strong>API Config</strong> - Add AI provider keys (Groq, OpenAI, etc.)</li>
+            </ul>
+        </div>
+
+        <h2>Setting Up API Keys</h2>
+        <ol>
+            <li>Go to <strong>Settings > API Config</strong></li>
+            <li>Click <strong>Add Provider</strong></li>
+            <li>Select your AI provider (Groq, OpenAI, etc.)</li>
+            <li>Enter your API key and model name</li>
+            <li>Set as default (optional)</li>
+        </ol>
+
+        <p><strong>Note:</strong> API keys configured here are used by the CLI when authenticated.</p>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.index') }}">← Back to Documentation</a>
+        </div>
+</div>
+{% endblock %}

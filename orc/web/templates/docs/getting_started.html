@@ -1,0 +1,132 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}Getting Started{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    .docs-content h3 {
+        color: #00ff41;
+    }
+    .docs-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+    }
+    .docs-content code {
+        background: #2d2d2d;
+        color: #d4d4d4;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+    }
+    .step {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-left: 4px solid #00ff41;
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .step h3 {
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+        margin: 0 10px;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>Getting Started with ORC</h1>
+        <p>Welcome! Let's get you up and running with ORC in just a few minutes.</p>
+
+        <h2 id="installation">Installation</h2>
+        <div class="step">
+            <h3>Step 1: Install ORC</h3>
+            <pre>pip install orc-cli</pre>
+            <p>Or install from source:</p>
+            <pre>git clone https://github.com/yourusername/orc.git
+cd orc
+pip install -e .</pre>
+        </div>
+
+        <h2 id="authentication">Authentication</h2>
+        <div class="step">
+            <h3>Step 2: Login to ORC</h3>
+            <p>Two authentication methods available:</p>
+            
+            <p><strong>Method 1: Web Token (Recommended)</strong></p>
+            <pre>orc login</pre>
+            <p>This will open your browser. Sign in, go to your <strong>Account</strong> page, and generate a token.</p>
+            
+            <p><strong>Method 2: Direct API Key</strong></p>
+            <pre>orc login --apikey YOUR_API_KEY</pre>
+        </div>
+
+        <h2>Your First Analysis</h2>
+        <div class="step">
+            <h3>Step 3: Index Your Codebase</h3>
+            <pre>cd your-project
+orc index</pre>
+            <p>This creates a searchable database of your code.</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Start AI Chat</h3>
+            <pre>orc</pre>
+            <p>Now you can ask questions about your codebase!</p>
+            <p>Try: <em>"Show me the most complex functions"</em></p>
+        </div>
+
+        <h2>Web Interface</h2>
+        <div class="step">
+            <h3>Step 5: Access Dashboard</h3>
+            <p>Visit: <code>http://127.0.0.1:5000</code></p>
+            <p>The web interface provides a visual way to explore your code, run analyses, and manage projects.</p>
+        </div>
+
+        <h2>Quick Commands</h2>
+        <ul>
+            <li><code>orc analyze</code> - Run full codebase analysis</li>
+            <li><code>orc dead</code> - Find potentially unused code</li>
+            <li><code>orc complexity</code> - Show complex functions</li>
+            <li><code>orc hotspots</code> - Find problem areas</li>
+            <li><code>orc status</code> - Check authentication status</li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.tutorials') }}">Next: Tutorials</a>
+            <a href="{{ url_for('docs.index') }}">← Back to Docs</a>
+        </div>
+</div>
+{% endblock %}

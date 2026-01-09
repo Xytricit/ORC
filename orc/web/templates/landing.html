@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}ORC - AI-Powered Code Intelligence{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="landing-page">
+    <!-- Navigation -->
+    <nav class="landing-navbar">
+        <div class="landing-logo">
+            <img src="{{ url_for('static', filename='images/orclogo.png') }}" alt="ORC Logo">
+            <span>ORC</span>
+        </div>
+        <div class="landing-nav-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="{{ url_for('auth.signin') }}" class="btn btn-outline">Sign In</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">Optimization & Refactoring Catalyst</h1>
+        <p class="hero-subtitle">AI-powered codebase intelligence. Analyze, optimize, and refactor your code with confidence.</p>
+        <div class="hero-cta">
+            <a href="{{ url_for('auth.signup') }}" class="btn btn-primary">Get Started Free</a>
+            <a href="#features" class="btn btn-outline">Learn More</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <h2 class="section-title">Powerful Code Analysis Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">AI</div>
+                <h3 class="feature-title">AI-Powered Analysis</h3>
+                <p class="feature-description">Leverage multiple AI providers including Ollama, Groq, OpenAI, and Anthropic for intelligent code insights.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">DC</div>
+                <h3 class="feature-title">Dead Code Detection</h3>
+                <p class="feature-description">Automatically identify unused functions, classes, and imports to keep your codebase clean.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">CX</div>
+                <h3 class="feature-title">Complexity Analysis</h3>
+                <p class="feature-description">Measure cyclomatic complexity and identify functions that need refactoring.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">DP</div>
+                <h3 class="feature-title">Dependency Mapping</h3>
+                <p class="feature-description">Visualize and analyze dependencies between modules, classes, and functions.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">SC</div>
+                <h3 class="feature-title">Security Scanning</h3>
+                <p class="feature-description">Detect potential security vulnerabilities and code smells before they become problems.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">ML</div>
+                <h3 class="feature-title">Multi-Language Support</h3>
+                <p class="feature-description">Analyze Python, JavaScript, TypeScript, React, and more with specialized parsers.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works-section">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <h3 class="step-title">Index Your Codebase</h3>
+                <p class="step-description">Point ORC to your project directory and let it analyze your code structure.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Run Analyses</h3>
+                <p class="step-description">Choose from various analysis types: dead code, complexity, security, and more.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">3</div>
+                <h3 class="step-title">Get AI Insights</h3>
+                <p class="step-description">Receive intelligent recommendations and actionable insights to improve your code.</p>
+            </div>
+
+            <div class="step">
+                <div class="step-number">4</div>
+                <h3 class="step-title">Optimize & Refactor</h3>
+                <p class="step-description">Apply suggestions and watch your code quality improve systematically.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <h2 class="cta-title">Ready to Transform Your Codebase?</h2>
+        <p class="cta-subtitle">Join developers who trust ORC for code intelligence.</p>
+        <a href="{{ url_for('auth.signup') }}" class="btn btn-primary btn-lg">Create Free Account</a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div class="footer-links">
+            <a href="#">Documentation</a>
+            <a href="#">GitHub</a>
+            <a href="#">Community</a>
+            <a href="#">Support</a>
+        </div>
+        <p>&copy; 2026 ORC - Optimization & Refactoring Catalyst. All rights reserved.</p>
+    </footer>
+</div>
+{% endblock %}

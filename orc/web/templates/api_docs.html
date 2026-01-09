@@ -1,0 +1,124 @@
+{% extends "dashboard_base.html" %}
+{% block page_title %}API Documentation{% endblock %}
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">ORC Context API</h1>
+    <p class="content-subtitle">External API for AI IDEs to query ORC's index and save tokens</p>
+</div>
+
+<div class="card" style="margin-bottom: var(--spacing-xl);">
+    <h2 class="card-header">Overview</h2>
+    <p>The ORC Context API allows external AI coding assistants (Cursor, Cody, etc.) to query your indexed codebase intelligently. Instead of reading entire codebases and wasting tokens, AI tools can ask ORC for relevant files based on the task.</p>
+    
+    <h3 style="margin-top: var(--spacing-lg);">Authentication</h3>
+    <p>All requests require an API key in the header:</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">X-API-Key: your_username:your_password</pre>
+    
+    <h3 style="margin-top: var(--spacing-lg);">Base URL</h3>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius);">http://127.0.0.1:5000/api/v1</pre>
+</div>
+
+<div class="card" style="margin-bottom: var(--spacing-xl);">
+    <h2 class="card-header">Endpoints</h2>
+    
+    <h3 style="color: var(--primary-green); margin-top: var(--spacing-lg);">GET /api/v1/health</h3>
+    <p>Health check endpoint</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">curl http://127.0.0.1:5000/api/v1/health</pre>
+    
+    <h3 style="color: var(--primary-green); margin-top: var(--spacing-xl);">GET /api/v1/projects</h3>
+    <p>List all indexed projects</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">curl -H "X-API-Key: username:password" \
+     http://127.0.0.1:5000/api/v1/projects</pre>
+    
+    <h3 style="color: var(--primary-green); margin-top: var(--spacing-xl);">POST /api/v1/context/query</h3>
+    <p><strong>Smart Context Query</strong> - Get relevant files for a specific query</p>
+    <p style="color: var(--text-secondary); font-size: 0.875rem;">Use this when you know what you're looking for (e.g., "authentication", "database", "API routes")</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">curl -X POST http://127.0.0.1:5000/api/v1/context/query \
+  -H "X-API-Key: username:password" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_id": 1,
+    "query": "authentication",
+    "max_files": 5
+  }'</pre>
+    <p style="margin-top: var(--spacing-md);"><strong>Response:</strong></p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">{
+  "relevant_files": [
+    {
+      "path": "src/auth.py",
+      "functions": ["login", "logout", "verify_token"],
+      "relevance_score": 0.95,
+      "reason": "Contains 3 function(s) matching 'authentication'"
+    }
+  ],
+  "message": "Found 5 relevant files for your query"
+}</pre>
+    
+    <h3 style="color: var(--primary-green); margin-top: var(--spacing-xl);">POST /api/v1/context/smart-files</h3>
+    <p><strong>Smart File Recommendations</strong> - Get file recommendations based on task description</p>
+    <p style="color: var(--text-secondary); font-size: 0.875rem;">Best for: "Fix the login bug", "Add email validation", "Refactor user model"</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">curl -X POST http://127.0.0.1:5000/api/v1/context/smart-files \
+  -H "X-API-Key: username:password" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "project_id": 1,
+    "task": "Fix the login bug where users cant reset password",
+    "context_window": 8000
+  }'</pre>
+    <p style="margin-top: var(--spacing-md);"><strong>Response:</strong></p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">{
+  "recommended_files": ["auth.py", "user.py", "reset.py"],
+  "estimated_tokens": 3500,
+  "context_window": 8000,
+  "reasoning": "Files containing: login, reset, password",
+  "keywords_detected": ["login", "users", "reset", "password"]
+}</pre>
+</div>
+
+<div class="card" style="margin-bottom: var(--spacing-xl);">
+    <h2 class="card-header">Usage with AI IDEs</h2>
+    
+    <h3 style="margin-top: var(--spacing-lg);">Cursor</h3>
+    <p>Add to your <code>.cursorrules</code> file:</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">Before reading files, query ORC Context API:
+curl -X POST http://127.0.0.1:5000/api/v1/context/smart-files \
+  -H "X-API-Key: {{ current_user.username }}:YOUR_PASSWORD" \
+  -H "Content-Type: application/json" \
+  -d '{"project_id": PROJECT_ID, "task": "USER_TASK"}'
+
+Only read the recommended files to save tokens.</pre>
+    
+    <h3 style="margin-top: var(--spacing-xl);">Custom Integration</h3>
+    <p>In your AI prompt:</p>
+    <pre style="background: var(--gray-dark); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">1. First, query ORC API for relevant files
+2. Read only those files
+3. Answer user's question
+4. Save 70-90% of tokens!</pre>
+</div>
+
+<div class="card">
+    <h2 class="card-header">Benefits</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-lg); margin-top: var(--spacing-lg);">
+        <div>
+            <h3 style="color: var(--primary-green);">70-90%</h3>
+            <p style="color: var(--text-secondary);">Token savings</p>
+        </div>
+        <div>
+            <h3 style="color: var(--primary-green);">10x Faster</h3>
+            <p style="color: var(--text-secondary);">AI responses</p>
+        </div>
+        <div>
+            <h3 style="color: var(--primary-green);">Smart</h3>
+            <p style="color: var(--text-secondary);">Context selection</p>
+        </div>
+        <div>
+            <h3 style="color: var(--primary-green);">Free</h3>
+            <p style="color: var(--text-secondary);">Open API</p>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: var(--spacing-xl);">
+    <a href="{{ url_for('dashboard.home') }}" class="btn btn-outline">Back to Dashboard</a>
+</div>
+{% endblock %}

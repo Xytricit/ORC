@@ -1,0 +1,159 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}Account Settings{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/api_config.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Account Settings</h1>
+    <p class="content-subtitle">Manage your profile and security settings</p>
+</div>
+
+<!-- Profile Information -->
+<div class="card" style="margin-bottom: var(--spacing-xl);">
+    <h3 class="card-header">Profile Information</h3>
+    <form method="POST" action="{{ url_for('settings.update_account') }}">
+        <div class="form-group">
+            <label class="form-label" for="username">Username</label>
+            <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+            <div class="form-help">Username cannot be changed</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="full_name">Full Name</label>
+            <input type="text" class="form-control" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+</div>
+
+<!-- Change Password -->
+<div class="card" style="margin-bottom: var(--spacing-xl);">
+    <h3 class="card-header">Change Password</h3>
+    <form method="POST" action="{{ url_for('settings.change_password') }}">
+        <div class="form-group">
+            <label class="form-label" for="current_password">Current Password</label>
+            <input type="password" class="form-control" id="current_password" name="current_password" required>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="new_password">New Password</label>
+            <input type="password" class="form-control" id="new_password" name="new_password" required>
+            <div class="form-help">Minimum 8 characters</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="confirm_password">Confirm New Password</label>
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Change Password</button>
+    </form>
+</div>
+
+<!-- CLI Integration -->
+<div class="card" style="margin-bottom: var(--spacing-xl);">
+    <h3 class="card-header">CLI Integration</h3>
+    <p style="color: var(--text-secondary); margin-bottom: var(--spacing-lg);">
+        Connect your ORC CLI to use API keys configured in this web interface. This allows you to manage all your AI providers in one place.
+    </p>
+    
+    <div style="background: var(--gray-medium); border: 1px solid var(--gray-light); border-radius: var(--border-radius); padding: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+            <div>
+                <div style="font-weight: 600; margin-bottom: var(--spacing-xs);">Your CLI Token</div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">Use this token to connect CLI</div>
+            </div>
+            <button class="btn btn-primary" onclick="generateToken()">Generate Token</button>
+        </div>
+        
+        <div id="tokenDisplay" style="display: none; margin-top: var(--spacing-md);">
+            <div style="display: flex; gap: var(--spacing-sm); align-items: center;">
+                <input type="text" id="tokenValue" class="form-control" readonly style="font-family: monospace; font-size: 0.875rem;">
+                <button class="btn btn-secondary" onclick="copyToken()">Copy</button>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--warning); margin-top: var(--spacing-sm);">
+                Keep this token secret. It gives access to your API configurations.
+            </div>
+        </div>
+    </div>
+
+    <div style="background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: var(--border-radius); padding: var(--spacing-lg);">
+        <div style="font-weight: 600; color: var(--primary-green); margin-bottom: var(--spacing-sm);">How to Connect CLI</div>
+        <ol style="margin-left: var(--spacing-lg); color: var(--text-secondary); font-size: 0.875rem;">
+            <li>Generate your CLI token above</li>
+            <li>Run: <code style="background: var(--primary-black); padding: 0.25rem 0.5rem; border-radius: 4px;">orc login --token YOUR_TOKEN</code></li>
+            <li>CLI will now use API keys from this web interface</li>
+            <li>No need to configure API keys separately in CLI</li>
+        </ol>
+    </div>
+</div>
+
+<!-- Account Info -->
+<div class="card">
+    <h3 class="card-header">Account Information</h3>
+    <div style="display: grid; gap: var(--spacing-md);">
+        <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--gray-medium);">
+            <span style="color: var(--text-secondary);">Account Created</span>
+            <span style="color: var(--text-primary);">{{ current_user.created_at.strftime('%Y-%m-%d') }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--gray-medium);">
+            <span style="color: var(--text-secondary);">Last Login</span>
+            <span style="color: var(--text-primary);">{{ current_user.last_login.strftime('%Y-%m-%d %H:%M') if current_user.last_login else 'Never' }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: var(--spacing-sm) 0;">
+            <span style="color: var(--text-secondary);">Account Status</span>
+            <span class="badge badge-success">Active</span>
+        </div>
+    </div>
+</div>
+
+<script>
+async function generateToken() {
+    try {
+        const response = await fetch('/api/token/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.token) {
+            document.getElementById('tokenValue').value = data.token;
+            document.getElementById('tokenDisplay').style.display = 'block';
+        } else {
+            modal.error('Error generating token: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        modal.error('Error generating token: ' + error.message);
+    }
+}
+
+function copyToken() {
+    const tokenInput = document.getElementById('tokenValue');
+    tokenInput.select();
+    document.execCommand('copy');
+    
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.background = 'var(--success)';
+    
+    setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '';
+    }, 2000);
+}
+</script>
+{% endblock %}

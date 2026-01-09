@@ -1,0 +1,50 @@
+{% extends "dashboard_base.html" %}
+{% block page_title %}Run Analysis{% endblock %}
+{% block dashboard_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}">{% endblock %}
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Run Analysis</h1>
+    <p class="content-subtitle">Analyze your codebase for issues and optimization opportunities</p>
+</div>
+
+<form method="POST" action="{{ url_for('analysis.execute') }}">
+    <div class="card" style="margin-bottom: var(--spacing-xl);">
+        <h3 class="card-header">Select Project</h3>
+        <div class="form-group">
+            <select name="project_id" class="form-control" required aria-label="Select project">
+                <option value="">Choose a project...</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}" {% if selected_project and selected_project.id == project.id %}selected{% endif %}>
+                    {{ project.name }}{% if not project.last_indexed %} (Not Indexed){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <h3 style="margin-bottom: var(--spacing-lg);">Select Analysis Type</h3>
+    <div class="analysis-selection">
+        {% for type in analysis_types %}
+        <label class="analysis-type-card">
+            <input type="radio" name="analysis_type" value="{{ type.id }}" required style="display: none;">
+            <div class="analysis-type-icon">{{ type.icon }}</div>
+            <div class="analysis-type-name">{{ type.name }}</div>
+            <div class="analysis-type-desc">{{ type.description }}</div>
+            <div class="analysis-type-time">Est: {{ type.estimated_time }}</div>
+        </label>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Run Analysis</button>
+</form>
+
+<script>
+document.querySelectorAll('.analysis-type-card').forEach(card => {
+    card.addEventListener('click', function() {
+        document.querySelectorAll('.analysis-type-card').forEach(c => c.classList.remove('selected'));
+        this.classList.add('selected');
+        this.querySelector('input').checked = true;
+    });
+});
+</script>
+{% endblock %}

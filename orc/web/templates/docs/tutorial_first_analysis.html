@@ -1,0 +1,111 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}Tutorial: Your First Analysis{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    .docs-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+    }
+    .step {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-left: 4px solid #00ff41;
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .step h2 {
+        margin-top: 0;
+        color: var(--text);
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>Tutorial: Your First Code Analysis</h1>
+        <p>In this tutorial, you'll learn how to analyze your codebase with ORC for the first time.</p>
+
+        <div class="step">
+            <h2>Step 1: Navigate to Your Project</h2>
+            <pre>cd /path/to/your/project</pre>
+            <p>Make sure you're in the root directory of the codebase you want to analyze.</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 2: Initialize ORC (Optional)</h2>
+            <pre>orc init</pre>
+            <p>This creates configuration files. Skip if you want to use defaults.</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 3: Index Your Code</h2>
+            <pre>orc index</pre>
+            <p>ORC will scan your codebase and create a searchable database. This may take a minute for large projects.</p>
+            <p><strong>What's happening:</strong> ORC is parsing your code, extracting functions, classes, and dependencies.</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 4: View Statistics</h2>
+            <pre>orc stats</pre>
+            <p>See a summary of your codebase: file counts, function counts, language breakdown.</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 5: Run Analysis</h2>
+            <pre>orc analyze</pre>
+            <p>Get insights about complexity, large files, and potential issues.</p>
+        </div>
+
+        <div class="step">
+            <h2>Step 6: Find Dead Code</h2>
+            <pre>orc dead</pre>
+            <p>Discover functions that might not be used anywhere in your codebase.</p>
+        </div>
+
+        <h2>Congratulations!</h2>
+        <p>You've completed your first ORC analysis! Here's what to try next:</p>
+        <ul>
+            <li>Start the AI chat: <code>orc</code></li>
+            <li>Check out the web interface at <code>http://127.0.0.1:5000</code></li>
+            <li>Learn more about <a href="{{ url_for('docs.tutorial_ai_chat') }}">AI Chat</a></li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.tutorials') }}">← Back to Tutorials</a>
+        </div>
+</div>
+{% endblock %}

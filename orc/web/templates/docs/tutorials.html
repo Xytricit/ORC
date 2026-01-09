@@ -1,0 +1,90 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}Tutorials{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 1000px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .tutorial-section {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        padding: 30px;
+        margin: 30px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .tutorial-section h2 {
+        color: #00ff41;
+        margin-bottom: 15px;
+    }
+    .tutorial-section ul {
+        line-height: 2;
+    }
+    .tutorial-section a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .tutorial-section a:hover {
+        text-decoration: underline;
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>ORC Tutorials</h1>
+        <p style="color: var(--text-muted); margin-bottom: 40px;">
+            Learn ORC through practical, step-by-step tutorials.
+        </p>
+
+    <div class="tutorial-section">
+        <h2>Beginner Tutorials</h2>
+        <ul>
+            <li><a href="{{ url_for('docs.tutorial_first_analysis') }}">Your First Code Analysis</a> - Index and analyze your first project</li>
+            <li><a href="{{ url_for('docs.tutorial_ai_chat') }}">Using AI Chat</a> - Ask questions about your codebase with AI</li>
+            <li><a href="{{ url_for('docs.tutorial_web_setup') }}">Web Interface Setup</a> - Set up and use the web dashboard</li>
+        </ul>
+    </div>
+
+    <div class="tutorial-section">
+        <h2>Intermediate Tutorials</h2>
+        <ul>
+            <li><strong>Finding Dead Code</strong> - Identify and remove unused functions</li>
+            <li><strong>Complexity Analysis</strong> - Find and refactor complex functions</li>
+            <li><strong>API Integration</strong> - Use ORC API in your CI/CD pipeline</li>
+        </ul>
+    </div>
+
+    <div class="tutorial-section">
+        <h2>Advanced Tutorials</h2>
+        <ul>
+            <li><strong>Custom AI Providers</strong> - Add your own AI models</li>
+            <li><strong>Large Codebase Optimization</strong> - Best practices for huge projects</li>
+            <li><strong>Team Collaboration</strong> - Set up ORC for your team</li>
+        </ul>
+    </div>
+
+    <div class="back-link">
+        <a href="{{ url_for('docs.index') }}">← Back to Documentation</a>
+    </div>
+</div>
+{% endblock %}

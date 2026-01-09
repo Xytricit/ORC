@@ -1,0 +1,52 @@
+{% extends "dashboard_base.html" %}
+{% block page_title %}Analysis Results{% endblock %}
+{% block dashboard_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}">{% endblock %}
+{% block content %}
+<div class="results-header">
+    <h1 class="content-title">{{ analysis.analysis_type.replace('_', ' ').title() }} Results</h1>
+    <p class="content-subtitle">{{ analysis.summary }}</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+        <div><span class="text-muted">Project:</span> {{ analysis.project.name }}</div>
+        <div><span class="text-muted">Completed:</span> {{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        <div><span class="text-muted">Execution Time:</span> {{ '%.2f' | format(analysis.execution_time) }}s</div>
+        <div><span class="text-muted">Status:</span> <span class="badge badge-success">{{ analysis.status }}</span></div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-header">Results</h3>
+    {% if analysis.analysis_type == 'dead_code' %}
+        {% set safe = analysis.results.get('safe_to_delete', []) %}
+        {% set review = analysis.results.get('review_needed', []) %}
+        <p>Safe to delete: <strong>{{ safe|length }}</strong> | Review needed: <strong>{{ review|length }}</strong></p>
+        {% for item in safe[:10] %}
+        <div class="result-item">
+            <div class="result-item-header">
+                <span class="result-item-name">{{ item.name }}()</span>
+                <span class="result-item-badge badge-error">{{ item.confidence }}</span>
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary);">{{ item.file_path }}</div>
+        </div>
+        {% endfor %}
+    {% elif analysis.analysis_type == 'complexity' %}
+        {% set funcs = analysis.results.get('high_complexity_functions', []) %}
+        <p>Found <strong>{{ funcs|length }}</strong> high complexity functions</p>
+        {% for item in funcs[:10] %}
+        <div class="result-item">
+            <div class="result-item-header">
+                <span class="result-item-name">{{ item.name }}()</span>
+                <span class="result-item-badge" style="background: var(--warning); color: var(--primary-black);">{{ item.complexity }}</span>
+            </div>
+            <div style="font-size: 0.875rem; color: var(--text-secondary);">{{ item.file_path }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <pre style="background: var(--gray-medium); padding: var(--spacing-md); border-radius: var(--border-radius); overflow-x: auto;">{{ analysis.results | tojson(indent=2) }}</pre>
+    {% endif %}
+</div>
+
+<div style="margin-top: var(--spacing-lg);">
+    <a href="{{ url_for('analysis.run') }}" class="btn btn-primary">Run Another Analysis</a>
+    <a href="{{ url_for('analysis.history') }}" class="btn btn-secondary">View History</a>
+</div>
+{% endblock %}

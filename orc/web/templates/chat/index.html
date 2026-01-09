@@ -1,0 +1,252 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}AI Assistant{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <!-- Sidebar -->
+    <div class="chat-sidebar">
+        <div class="chat-sidebar-section">
+            <div class="chat-sidebar-label">Project Context</div>
+            <select id="projectSelect" class="chat-select" aria-label="Select project for context">
+                <option value="">No context (General)</option>
+                {% for project in projects %}
+                <option value="{{ project.id }}" {% if not project.last_indexed %}disabled{% endif %}>
+                    {{ project.name }}{% if not project.last_indexed %} (Not Indexed){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <div class="chat-context-info">
+                <div class="chat-context-title">Context Mode</div>
+                <p id="contextInfo">Select a project to enable context-aware responses using ORC's indexed codebase data.</p>
+            </div>
+        </div>
+
+        <div class="chat-sidebar-section">
+            <div class="chat-sidebar-label">AI Provider</div>
+            <select id="providerSelect" class="chat-select" aria-label="Select AI provider">
+                {% if configs %}
+                    {% for config in configs %}
+                    <option value="{{ config.id }}" {% if config.is_default %}selected{% endif %}>
+                        {{ config.provider.title() }}{% if config.model_name %} ({{ config.model_name }}){% endif %}
+                    </option>
+                    {% endfor %}
+                {% else %}
+                    <option value="">No provider configured</option>
+                {% endif %}
+            </select>
+            {% if not configs %}
+            <a href="{{ url_for('settings.api_config') }}" class="btn btn-primary" style="margin-top: var(--spacing-sm);">Configure AI</a>
+            {% endif %}
+        </div>
+
+        <div class="chat-sidebar-section">
+            <div class="chat-sidebar-label">Token Efficiency</div>
+            <div class="chat-context-info">
+                <div class="chat-context-title">Smart Context</div>
+                <p>ORC uses its indexed codebase map to provide only relevant context, saving tokens and reducing costs.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Chat -->
+    <div class="chat-main">
+        <div class="chat-header">
+            <h2 class="chat-header-title">AI Code Assistant</h2>
+            <p class="chat-header-subtitle">Ask questions about your codebase with context-aware AI</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-empty">
+                <div class="chat-empty-icon">AI</div>
+                <h3 class="chat-empty-title">Start a Conversation</h3>
+                <p class="chat-empty-subtitle">Ask me anything about your code, architecture, or get optimization suggestions.</p>
+                
+                <div class="chat-suggestions">
+                    <div class="chat-suggestion" onclick="useSuggestion('What are the main components of this project?')">
+                        <p class="chat-suggestion-text">What are the main components of this project?</p>
+                    </div>
+                    <div class="chat-suggestion" onclick="useSuggestion('Find functions with high complexity')">
+                        <p class="chat-suggestion-text">Find functions with high complexity</p>
+                    </div>
+                    <div class="chat-suggestion" onclick="useSuggestion('Show me potential dead code')">
+                        <p class="chat-suggestion-text">Show me potential dead code</p>
+                    </div>
+                    <div class="chat-suggestion" onclick="useSuggestion('Analyze the dependency structure')">
+                        <p class="chat-suggestion-text">Analyze the dependency structure</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Ask a question about your code..."
+                    rows="1"></textarea>
+                <button id="sendBtn" class="btn btn-primary chat-send-btn" onclick="sendMessage()">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let isWaiting = false;
+
+// Auto-resize textarea
+document.getElementById('chatInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+
+// Enter to send (Shift+Enter for new line)
+document.getElementById('chatInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+// Update context info when project changes
+document.getElementById('projectSelect').addEventListener('change', function() {
+    const select = this;
+    const contextInfo = document.getElementById('contextInfo');
+    const selectedOption = select.options[select.selectedIndex];
+    
+    if (select.value) {
+        contextInfo.innerHTML = `<strong>${selectedOption.text}</strong><br>AI will use this project's index for context-aware responses.`;
+    } else {
+        contextInfo.textContent = 'Select a project to enable context-aware responses using ORC\'s indexed codebase data.';
+    }
+});
+
+function useSuggestion(text) {
+    document.getElementById('chatInput').value = text;
+    document.getElementById('chatInput').focus();
+}
+
+function addMessage(text, isUser, time = new Date()) {
+    const messagesDiv = document.getElementById('chatMessages');
+    const empty = messagesDiv.querySelector('.chat-empty');
+    if (empty) empty.remove();
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message ${isUser ? 'user' : 'ai'}`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = `chat-avatar ${isUser ? 'user' : 'ai'}`;
+    avatar.textContent = isUser ? '{{ current_user.full_name[0] if current_user.full_name else current_user.username[0] }}' : 'AI';
+    
+    const content = document.createElement('div');
+    content.className = 'chat-message-content';
+    
+    const textDiv = document.createElement('div');
+    textDiv.className = 'chat-message-text';
+    textDiv.textContent = text;
+    
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'chat-message-time';
+    timeDiv.textContent = time.toLocaleTimeString();
+    
+    content.appendChild(textDiv);
+    content.appendChild(timeDiv);
+    
+    messageDiv.appendChild(avatar);
+    messageDiv.appendChild(content);
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function showTyping() {
+    const messagesDiv = document.getElementById('chatMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chat-typing';
+    typingDiv.id = 'typingIndicator';
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'chat-avatar ai';
+    avatar.textContent = 'AI';
+    
+    const dots = document.createElement('div');
+    dots.className = 'chat-typing-dots';
+    dots.innerHTML = '<div class="chat-typing-dot"></div><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div>';
+    
+    typingDiv.appendChild(avatar);
+    typingDiv.appendChild(dots);
+    messagesDiv.appendChild(typingDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function hideTyping() {
+    const typing = document.getElementById('typingIndicator');
+    if (typing) typing.remove();
+}
+
+async function sendMessage() {
+    if (isWaiting) return;
+    
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    const projectId = document.getElementById('projectSelect').value;
+    const providerId = document.getElementById('providerSelect').value;
+    
+    if (!providerId) {
+        modal.warning('Please configure an AI provider first', 'No Provider Configured');
+        return;
+    }
+    
+    // Add user message
+    addMessage(message, true);
+    input.value = '';
+    input.style.height = 'auto';
+    
+    // Show typing indicator
+    isWaiting = true;
+    document.getElementById('sendBtn').disabled = true;
+    showTyping();
+    
+    try {
+        const response = await fetch('/chat/send', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                project_id: projectId || null,
+                provider_id: providerId
+            })
+        });
+        
+        const data = await response.json();
+        
+        hideTyping();
+        
+        if (data.error) {
+            addMessage(`Error: ${data.error}`, false);
+        } else {
+            addMessage(data.response, false);
+        }
+    } catch (error) {
+        hideTyping();
+        addMessage(`Error: ${error.message}`, false);
+    } finally {
+        isWaiting = false;
+        document.getElementById('sendBtn').disabled = false;
+        input.focus();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/docs.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="docs-layout">
+    <!-- Glassmorphism header for docs -->
+    <header class="docs-header">
+        <div class="docs-header-content">
+            <a href="{{ url_for('dashboard.home') }}" class="docs-logo">
+                <img src="{{ url_for('static', filename='images/orclogo.png') }}" alt="ORC" style="height: 70px;">
+                <span class="logo-text">ORC</span>
+            </a>
+            <nav class="docs-nav">
+                <a href="{{ url_for('docs.index') }}" class="nav-link">Documentation</a>
+                <a href="{{ url_for('docs.tutorials') }}" class="nav-link">Tutorials</a>
+                <a href="{{ url_for('dashboard.home') }}" class="nav-link">Dashboard</a>
+            </nav>
+            <div class="docs-search-container">
+                <input type="text" id="docsSearch" class="docs-search-input" placeholder="Search docs...">
+                <div id="searchResults" class="search-results-dropdown"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main docs content -->
+    <main class="docs-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Simple footer -->
+    <footer class="docs-footer">
+        <p>&copy; 2026 ORC - Optimization & Refactoring Catalyst</p>
+    </footer>
+</div>
+
+<style>
+    .docs-layout {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+    }
+    
+    /* Glassmorphism header */
+    .docs-header {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+    }
+    
+    .docs-header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .docs-logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+    }
+    
+    .logo-text {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #00ff41;
+        letter-spacing: 0.05em;
+    }
+    
+    .docs-nav {
+        display: flex;
+        gap: 2rem;
+    }
+    
+    .nav-link {
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+    }
+    
+    .nav-link:hover {
+        color: var(--primary);
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Docs Search */
+    .docs-search-container {
+        position: relative;
+        margin-left: 2rem;
+    }
+    
+    .docs-search-input {
+        width: 280px;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        color: var(--text);
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+    
+    .docs-search-input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #00ff41;
+        box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.1);
+    }
+    
+    .docs-search-input::placeholder {
+        color: var(--text-muted);
+    }
+    
+    .search-results-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 400px;
+        max-height: 400px;
+        overflow-y: auto;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        display: none;
+        z-index: 10000;
+    }
+    
+    .search-results-dropdown.open {
+        display: block;
+        animation: slideDown 0.2s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .search-result-item {
+        display: block;
+        padding: 12px 16px;
+        border-bottom: 1px solid #2a2a2a;
+        transition: background 0.2s;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    
+    .search-result-item:hover {
+        background: rgba(0, 255, 65, 0.05);
+    }
+    
+    .search-result-item.no-results {
+        pointer-events: none;
+        opacity: 0.6;
+    }
+    
+    .search-result-content {
+        width: 100%;
+    }
+    
+    .search-result-title {
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .search-result-title mark {
+        background: #00ff41;
+        color: #000;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+    
+    .search-result-description {
+        font-size: 0.8rem;
+        color: #aaa;
+        line-height: 1.4;
+    }
+    
+    /* Scrollbar for search results */
+    .search-results-dropdown::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .search-results-dropdown::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+    
+    .search-results-dropdown::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 3px;
+    }
+    
+    .search-results-dropdown::-webkit-scrollbar-thumb:hover {
+        background: #444;
+    }
+    
+    .docs-main {
+        flex: 1;
+        max-width: 1400px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .docs-footer {
+        background: rgba(255, 255, 255, 0.02);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 2rem;
+        text-align: center;
+        color: var(--text-muted);
+    }
+
+    /* Icon styles */
+    .icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-right: 0.5rem;
+    }
+
+    .icon-large {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .icon svg {
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+    }
+</style>
+
+{% block dashboard_css %}{% endblock %}
+
+<!-- Docs Search JavaScript -->
+<script src="{{ url_for('static', filename='js/docs-search.js') }}"></script>
+
+<!-- Override any sidebar styles that might leak -->
+<style>
+    /* Ensure no sidebar in docs */
+    #sidebar,
+    .sidebar,
+    .dashboard-layout .sidebar {
+        display: none !important;
+    }
+    
+    /* Full width for docs content */
+    .docs-layout,
+    .docs-main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+</style>
+{% endblock %}

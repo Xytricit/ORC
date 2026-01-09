@@ -1,0 +1,139 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}CLI Reference{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    .docs-content h3 {
+        color: #00ff41;
+    }
+    .docs-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+    }
+    .docs-content code {
+        background: #2d2d2d;
+        color: #d4d4d4;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+    }
+    .command {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-left: 4px solid #00ff41;
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .command h3 {
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>CLI Reference</h1>
+        
+        <h2>Authentication</h2>
+        <div class="command">
+            <h3>orc login</h3>
+            <p>Connect CLI to ORC web application</p>
+            <pre>orc login                    # Interactive login
+orc login --token TOKEN      # Direct token login
+orc login --apikey KEY       # Direct API key</pre>
+        </div>
+
+        <h2>Analysis Commands</h2>
+        <div class="command">
+            <h3>orc</h3>
+            <p>Start AI chat session (requires authentication)</p>
+            <pre>orc</pre>
+        </div>
+
+        <div class="command">
+            <h3>orc index</h3>
+            <p>Index a codebase for analysis</p>
+            <pre>orc index                    # Index current directory
+orc index /path/to/code      # Index specific directory
+orc index --force            # Force re-indexing</pre>
+        </div>
+
+        <div class="command">
+            <h3>orc analyze</h3>
+            <p>Run full codebase analysis</p>
+            <pre>orc analyze</pre>
+        </div>
+
+        <div class="command">
+            <h3>orc dead</h3>
+            <p>Find potentially unused code</p>
+            <pre>orc dead
+orc dead --confidence 0.8    # Set confidence threshold
+orc dead --limit 50          # Limit results</pre>
+        </div>
+
+        <div class="command">
+            <h3>orc complexity</h3>
+            <p>Show complexity metrics</p>
+            <pre>orc complexity
+orc complexity --threshold 15  # Custom threshold</pre>
+        </div>
+
+        <div class="command">
+            <h3>orc hotspots</h3>
+            <p>Find problem areas</p>
+            <pre>orc hotspots
+orc hotspots --limit 20</pre>
+        </div>
+
+        <h2>AI Chat Commands</h2>
+        <p>Inside the ORC chat, use these slash commands:</p>
+        <ul>
+            <li><code>/help</code> - Show all commands</li>
+            <li><code>/status</code> - Show AI provider status</li>
+            <li><code>/providers</code> - List available AI providers</li>
+            <li><code>/models</code> - Show current model</li>
+            <li><code>/clear</code> - Clear conversation</li>
+            <li><code>/history</code> - Show chat history</li>
+            <li><code>/exit</code> - Exit ORC</li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.index') }}">← Back to Documentation</a>
+        </div>
+</div>
+{% endblock %}

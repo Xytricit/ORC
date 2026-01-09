@@ -1,0 +1,43 @@
+/* Docs Green Headers */
+.docs-content h1,
+.docs-content h2,
+.docs-content h3,
+.docs-header h1,
+.docs-header h2,
+.docs-card h3,
+.quick-links h2,
+.step h3,
+.command h3,
+.endpoint h3 {
+    color: #00ff41 !important;
+}
+
+/* Green links in docs */
+.docs-content a,
+.quick-links a,
+.back-link a {
+    color: #00ff41;
+}
+
+.docs-content a:hover,
+.quick-links a:hover,
+.back-link a:hover {
+    color: #00dd37;
+}
+
+/* Green border accent for cards */
+.step,
+.command,
+.endpoint {
+    border-left-color: #00ff41 !important;
+}
+
+.docs-card:hover {
+    border-color: #00ff41 !important;
+}
+
+/* Green text for var(--primary) elements */
+.logo-text,
+.nav-link:hover {
+    color: #00ff41 !important;
+}

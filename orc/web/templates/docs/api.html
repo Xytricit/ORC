@@ -1,0 +1,154 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}API Documentation{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    .docs-content h3 {
+        color: #00ff41;
+    }
+    .docs-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+    }
+    .endpoint {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .endpoint h3 {
+        color: var(--text);
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>API Documentation</h1>
+        <p>Integrate ORC into your tools and workflows with our REST API.</p>
+
+        <h2>Authentication</h2>
+        <p>Use your CLI token in the <code>X-CLI-Token</code> header:</p>
+        <pre>curl -H "X-CLI-Token: YOUR_TOKEN" http://127.0.0.1:5000/api/configs</pre>
+
+        <h2>Endpoints</h2>
+
+        <div class="endpoint">
+            <h3>GET /api/configs</h3>
+            <p>Get your API configurations</p>
+            <pre>GET /api/configs
+Headers: X-CLI-Token: YOUR_TOKEN
+
+Response:
+{
+  "configs": [
+    {
+      "provider": "groq",
+      "api_key": "gsk_...",
+      "model_name": "llama-3.3-70b-versatile",
+      "is_default": true
+    }
+  ],
+  "user": {
+    "username": "turbo",
+    "email": "user@example.com"
+  }
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3>GET /api/default-config</h3>
+            <p>Get your default AI provider configuration</p>
+            <pre>GET /api/default-config
+Headers: X-CLI-Token: YOUR_TOKEN
+
+Response:
+{
+  "provider": "groq",
+  "api_key": "gsk_...",
+  "model_name": "llama-3.3-70b-versatile"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3>POST /api/projects/auto-create</h3>
+            <p>Auto-create a project (used by CLI)</p>
+            <pre>POST /api/projects/auto-create
+Headers: X-CLI-Token: YOUR_TOKEN
+Body:
+{
+  "name": "my-project",
+  "path": "/path/to/project",
+  "db_path": "/path/to/.orc/index.db"
+}
+
+Response:
+{
+  "message": "Project created",
+  "project_id": 1,
+  "name": "my-project"
+}</pre>
+        </div>
+
+        <div class="endpoint">
+            <h3>POST /api/token/generate</h3>
+            <p>Generate a new CLI token (requires web login)</p>
+            <pre>POST /api/token/generate
+Cookies: session
+
+Response:
+{
+  "token": "abcd1234...",
+  "created_at": "2026-01-09T14:00:00"
+}</pre>
+        </div>
+
+        <h2>Context API (Coming Soon)</h2>
+        <p>Advanced endpoints for IDE integrations:</p>
+        <ul>
+            <li><code>/api/v1/context/query</code> - Smart context queries</li>
+            <li><code>/api/v1/context/smart-files</code> - AI-powered file recommendations</li>
+            <li><code>/api/v1/context/dependencies</code> - Dependency analysis</li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.index') }}">← Back to Documentation</a>
+        </div>
+</div>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}API Configuration{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/api_config.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="api-config-header">
+    <div>
+        <h1 class="content-title">API Configuration</h1>
+        <p class="content-subtitle">Configure AI providers for code analysis</p>
+    </div>
+</div>
+
+<!-- Info Cards -->
+<div class="provider-info-grid">
+    <div class="info-card">
+        <div class="info-card-title">Configured Providers</div>
+        <div class="info-card-value">{{ providers | selectattr('is_configured') | list | length }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-card-title">Default Provider</div>
+        <div class="info-card-value">{{ (providers | selectattr('is_default') | first).name if providers | selectattr('is_default') | list else 'None' }}</div>
+    </div>
+    <div class="info-card">
+        <div class="info-card-title">Available Providers</div>
+        <div class="info-card-value">{{ providers | length }}</div>
+    </div>
+</div>
+
+<!-- Providers Grid -->
+<div class="providers-grid">
+    {% for provider in providers %}
+    <div class="provider-card {% if provider.is_configured %}active{% endif %} {% if provider.is_default %}default{% endif %}">
+        <div class="provider-header">
+            <div class="provider-name-section">
+                <div class="provider-icon">{{ provider.icon }}</div>
+                <div>
+                    <div class="provider-name">{{ provider.name }}</div>
+                    <div class="provider-type">{{ provider.type }}</div>
+                </div>
+            </div>
+            <div class="provider-badges">
+                <span class="provider-status {% if provider.is_configured %}configured{% else %}not-configured{% endif %}">
+                    {% if provider.is_configured %}Configured{% else %}Not Configured{% endif %}
+                </span>
+                {% if provider.is_default %}
+                <span class="badge badge-success">Default</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="provider-info">
+            <p class="provider-description">{{ provider.description }}</p>
+            
+            {% if provider.is_configured %}
+            <div class="provider-details">
+                {% if provider.config.model_name %}
+                <div class="provider-detail">
+                    <span class="provider-detail-label">Model:</span>
+                    <span class="provider-detail-value">{{ provider.config.model_name }}</span>
+                </div>
+                {% endif %}
+                {% if provider.config.base_url %}
+                <div class="provider-detail">
+                    <span class="provider-detail-label">Base URL:</span>
+                    <span class="provider-detail-value">{{ provider.config.base_url }}</span>
+                </div>
+                {% endif %}
+                {% if provider.config.api_key %}
+                <div class="provider-detail">
+                    <span class="provider-detail-label">API Key:</span>
+                    <span class="provider-detail-value masked">{{ provider.config.api_key[:8] }}...</span>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="provider-actions">
+            {% if provider.is_configured %}
+                <button class="btn btn-primary" onclick="editProvider('{{ provider.id }}', {{ provider.config.id }})">Edit</button>
+                <form method="POST" action="{{ url_for('settings.delete_api_config', config_id=provider.config.id) }}" style="display: inline; flex: 1;">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this configuration?')" style="width: 100%;">Delete</button>
+                </form>
+            {% else %}
+                <button class="btn btn-primary" onclick="configureProvider('{{ provider.id }}', {{ provider.requires_key | tojson }})">Configure</button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Configuration Modal (Hidden by default) -->
+<div id="configModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; padding: 2rem; overflow-y: auto;">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <div class="card">
+            <h2 class="card-header" id="modalTitle">Configure Provider</h2>
+            <form method="POST" action="{{ url_for('settings.add_api_config') }}" id="configForm">
+                <input type="hidden" name="provider" id="provider">
+                
+                <div class="form-group">
+                    <label class="form-label" for="model_name">Model Name</label>
+                    <input type="text" class="form-control" id="model_name" name="model_name" placeholder="e.g., llama3.1, gpt-4">
+                    <div class="form-help">Optional: Specify the model to use</div>
+                </div>
+
+                <div class="form-group" id="apiKeyGroup">
+                    <label class="form-label" for="api_key">API Key</label>
+                    <div class="api-key-input-wrapper">
+                        <input type="password" class="form-control" id="api_key" name="api_key" placeholder="Enter your API key">
+                        <button type="button" class="api-key-toggle" onclick="toggleApiKey()">Show</button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="baseUrlGroup" style="display: none;">
+                    <label class="form-label" for="base_url">Base URL</label>
+                    <input type="text" class="form-control" id="base_url" name="base_url" placeholder="http://localhost:11434">
+                    <div class="form-help">For Ollama or custom endpoints</div>
+                </div>
+
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="is_default" name="is_default">
+                    <label class="form-check-label" for="is_default">Set as default provider</label>
+                </div>
+
+                <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                    <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function configureProvider(providerId, requiresKey) {
+    document.getElementById('provider').value = providerId;
+    document.getElementById('modalTitle').textContent = 'Configure ' + providerId.charAt(0).toUpperCase() + providerId.slice(1);
+    
+    // Show/hide fields based on provider
+    if (providerId === 'ollama') {
+        document.getElementById('apiKeyGroup').style.display = 'none';
+        document.getElementById('baseUrlGroup').style.display = 'block';
+    } else {
+        document.getElementById('apiKeyGroup').style.display = 'block';
+        document.getElementById('baseUrlGroup').style.display = 'none';
+    }
+    
+    // Clear form
+    document.getElementById('configForm').reset();
+    document.getElementById('provider').value = providerId;
+    
+    // Show modal
+    document.getElementById('configModal').style.display = 'block';
+}
+
+function editProvider(providerId, configId) {
+    // For simplicity, just open configure modal
+    // In production, would pre-fill with existing values
+    configureProvider(providerId, true);
+}
+
+function closeModal() {
+    document.getElementById('configModal').style.display = 'none';
+}
+
+function toggleApiKey() {
+    const input = document.getElementById('api_key');
+    const button = event.target;
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.textContent = 'Hide';
+    } else {
+        input.type = 'password';
+        button.textContent = 'Show';
+    }
+}
+
+// Close modal on background click
+document.getElementById('configModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

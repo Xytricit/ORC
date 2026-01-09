@@ -1,0 +1,77 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}New Project{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Create New Project</h1>
+    <p class="content-subtitle">Index a codebase for analysis</p>
+</div>
+
+<div class="row">
+    <div class="col-8">
+        <div class="card">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+
+                <div class="form-group">
+                    <label class="form-label" for="name">Project Name</label>
+                    {{ form.name(class="form-control", placeholder="My Awesome Project") }}
+                    {% if form.name.errors %}
+                        {% for error in form.name.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="form-help">A descriptive name for your project</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="path">Project Path</label>
+                    {{ form.path(class="form-control", placeholder="/path/to/your/project") }}
+                    {% if form.path.errors %}
+                        {% for error in form.path.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <div class="form-help">Absolute path to the project directory</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="description">Description (Optional)</label>
+                    {{ form.description(class="form-control", rows=4, placeholder="Brief description of the project...") }}
+                    {% if form.description.errors %}
+                        {% for error in form.description.errors %}
+                            <div class="form-error">{{ error }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div style="display: flex; gap: var(--spacing-md);">
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                    <a href="{{ url_for('projects.list') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-4">
+        <div class="card">
+            <h3 class="card-header">What Happens Next?</h3>
+            <div class="card-body">
+                <p>After creating the project, you'll need to index it to analyze the codebase.</p>
+                <p style="margin-top: var(--spacing-md);">ORC will:</p>
+                <ul style="margin-left: var(--spacing-lg); color: var(--text-secondary);">
+                    <li>Scan all source files</li>
+                    <li>Extract functions and classes</li>
+                    <li>Build dependency graph</li>
+                    <li>Calculate complexity metrics</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

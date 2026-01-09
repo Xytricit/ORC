@@ -1,0 +1,142 @@
+/* Authentication Pages Styles */
+
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-black);
+    padding: var(--spacing-lg);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.auth-logo img {
+    height: 60px;
+    width: auto;
+    margin-bottom: var(--spacing-md);
+}
+
+.auth-logo-text {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.auth-card {
+    background: var(--gray-dark);
+    border: 1px solid var(--gray-medium);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-2xl);
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    text-align: center;
+    margin-bottom: var(--spacing-sm);
+    color: var(--text-primary);
+}
+
+.auth-subtitle {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: var(--spacing-lg) 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--gray-medium);
+}
+
+.auth-divider span {
+    padding: 0 var(--spacing-md);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: var(--spacing-lg);
+    color: var(--text-secondary);
+}
+
+.auth-footer a {
+    color: var(--primary-green);
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.password-requirements {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: var(--spacing-sm);
+    padding-left: var(--spacing-md);
+}
+
+.password-requirements li {
+    margin-bottom: var(--spacing-xs);
+}
+
+.terms-text {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.terms-text a {
+    color: var(--primary-green);
+}
+
+/* Form specific styles */
+.auth-form .form-group:last-of-type {
+    margin-bottom: var(--spacing-xl);
+}
+
+.auth-form .btn-block {
+    margin-top: var(--spacing-lg);
+}
+
+/* Back to home link */
+.back-to-home {
+    text-align: center;
+    margin-top: var(--spacing-xl);
+}
+
+.back-to-home a {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.back-to-home a:hover {
+    color: var(--primary-green);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .auth-card {
+        padding: var(--spacing-lg);
+    }
+    
+    .auth-title {
+        font-size: 1.5rem;
+    }
+}

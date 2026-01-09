@@ -1,0 +1,71 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}Projects{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/projects.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="projects-header">
+    <div>
+        <h1 class="content-title">Projects</h1>
+        <p class="content-subtitle">Manage your indexed codebases</p>
+    </div>
+    <a href="{{ url_for('projects.new') }}" class="btn btn-primary">+ New Project</a>
+</div>
+
+{% if projects %}
+<div class="projects-grid">
+    {% for project in projects %}
+    <div class="project-card" onclick="window.location='{{ url_for('projects.detail', project_id=project.id) }}'">
+        <div class="project-card-header">
+            <div class="project-icon">PR</div>
+            <span class="project-status {% if project.last_indexed %}indexed{% else %}not-indexed{% endif %}">
+                {% if project.last_indexed %}Indexed{% else %}Not Indexed{% endif %}
+            </span>
+        </div>
+        
+        <h3 class="project-name">{{ project.name }}</h3>
+        <div class="project-path">{{ project.path }}</div>
+        
+        {% if project.description %}
+        <p class="project-description">{{ project.description[:100] }}{% if project.description|length > 100 %}...{% endif %}</p>
+        {% endif %}
+        
+        {% if project.last_indexed %}
+        <div class="project-stats">
+            <div class="project-stat">
+                <div class="project-stat-value">{{ project.file_count or 0 }}</div>
+                <div class="project-stat-label">Files</div>
+            </div>
+            <div class="project-stat">
+                <div class="project-stat-value">{{ project.function_count or 0 }}</div>
+                <div class="project-stat-label">Functions</div>
+            </div>
+        </div>
+        
+        <div class="project-meta">
+            Last indexed: {{ project.last_indexed.strftime('%Y-%m-%d %H:%M') if project.last_indexed else 'Never' }}
+        </div>
+        {% else %}
+        <div class="project-meta">
+            <span style="color: var(--warning);">Click to index this project</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="projects-empty">
+        <div class="projects-empty-icon">PR</div>
+        <h2 class="projects-empty-title">No Projects Yet</h2>
+        <p class="projects-empty-description">
+            Create your first project to start analyzing your codebase with ORC's powerful AI-driven insights.
+        </p>
+        <a href="{{ url_for('projects.new') }}" class="btn btn-primary btn-lg">Create Your First Project</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

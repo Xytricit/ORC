@@ -1,0 +1,47 @@
+{% extends "dashboard_base.html" %}
+{% block page_title %}Analysis History{% endblock %}
+{% block dashboard_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/analysis.css') }}">{% endblock %}
+{% block content %}
+<div class="content-header">
+    <h1 class="content-title">Analysis History</h1>
+    <p class="content-subtitle">View all past analyses</p>
+</div>
+
+{% if analyses %}
+<div class="history-table">
+    <table>
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Project</th>
+                <th>Summary</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for analysis in analyses %}
+            <tr>
+                <td><span class="badge badge-info">{{ analysis.analysis_type.replace('_', ' ').title() }}</span></td>
+                <td>{{ analysis.project.name if analysis.project else 'Unknown' }}</td>
+                <td>{{ analysis.summary }}</td>
+                <td>{{ analysis.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ '%.2f' | format(analysis.execution_time) }}s</td>
+                <td><a href="{{ url_for('analysis.results', analysis_id=analysis.id) }}" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-state-icon">AN</div>
+        <h3 class="empty-state-title">No Analyses Yet</h3>
+        <p class="empty-state-description">Run your first analysis to start tracking code quality.</p>
+        <a href="{{ url_for('analysis.run') }}" class="btn btn-primary btn-lg">Run Analysis</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

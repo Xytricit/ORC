@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ORC - Optimization & Refactoring Catalyst{% endblock %}</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/polish.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/toast.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/orclogo.png') }}">
+</head>
+<body>
+    <!-- Toast Container (managed by toast.js) -->
+    <div class="toast-container"></div>
+    
+    {% block body %}{% endblock %}
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/toast.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    <script>
+        // Convert Flask flash messages to toasts
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for category, message in messages %}
+                        const type = '{{ category }}' === 'danger' ? 'error' : '{{ category }}';
+                        toast.show('{{ message|safe }}', type);
+                    {% endfor %}
+                });
+            {% endif %}
+        {% endwith %}
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

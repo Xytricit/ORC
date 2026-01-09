@@ -1,0 +1,116 @@
+{% extends "docs_base.html" %}
+
+{% block page_title %}Tutorial: Using AI Chat{% endblock %}
+
+{% block dashboard_css %}
+<style>
+    .docs-content {
+        max-width: 900px;
+        margin: 0 auto;
+        line-height: 1.8;
+    }
+    .docs-content h1 {
+        color: #00ff41;
+        margin-bottom: 20px;
+    }
+    .docs-content h2 {
+        color: #00ff41;
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+    .docs-content h3 {
+        color: #00ff41;
+    }
+    .docs-content pre {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+    }
+    .example {
+        background: var(--card-bg);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        padding: 25px;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .example h3 {
+        color: var(--text);
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .back-link {
+        margin-top: 40px;
+        text-align: center;
+        padding: 20px;
+    }
+    .back-link a {
+        color: #00ff41;
+        text-decoration: none;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="docs-content">
+        <h1>Tutorial: Using AI Chat</h1>
+        <p>Learn how to use ORC's AI chat to ask questions about your codebase.</p>
+
+        <h2>Starting AI Chat</h2>
+        <pre>orc login        # Authenticate first
+orc              # Start chat</pre>
+
+        <h2>Example Questions</h2>
+        
+        <div class="example">
+            <h3>Understanding Code</h3>
+            <p><strong>You:</strong> "What does the authentication system do?"</p>
+            <p><strong>ORC:</strong> <em>Analyzes auth-related functions and explains the flow</em></p>
+        </div>
+
+        <div class="example">
+            <h3>Finding Issues</h3>
+            <p><strong>You:</strong> "Show me the most complex functions"</p>
+            <p><strong>ORC:</strong> <em>Uses get_complexity_report tool and lists results</em></p>
+        </div>
+
+        <div class="example">
+            <h3>Code Quality</h3>
+            <p><strong>You:</strong> "Are there any unused functions?"</p>
+            <p><strong>ORC:</strong> <em>Runs dead code analysis and reports findings</em></p>
+        </div>
+
+        <div class="example">
+            <h3>Refactoring Advice</h3>
+            <p><strong>You:</strong> "How can I improve the performance of user_login()?"</p>
+            <p><strong>ORC:</strong> <em>Analyzes the function and suggests optimizations</em></p>
+        </div>
+
+        <h2>Useful Slash Commands</h2>
+        <ul>
+            <li><code>/models</code> - Change AI model</li>
+            <li><code>/providers</code> - Switch AI provider</li>
+            <li><code>/clear</code> - Clear conversation history</li>
+            <li><code>/status</code> - Check AI provider status</li>
+            <li><code>/help</code> - Show all commands</li>
+        </ul>
+
+        <h2>Tips for Better Results</h2>
+        <ul>
+            <li>Be specific: "Show complex functions in auth.py" vs "show me complex stuff"</li>
+            <li>Ask follow-up questions: ORC remembers context from previous messages</li>
+            <li>Use /clear when switching topics to reset context</li>
+            <li>Index your code first with <code>orc index</code></li>
+        </ul>
+
+        <div class="back-link">
+            <a href="{{ url_for('docs.tutorials') }}">← Back to Tutorials</a>
+        </div>
+</div>
+{% endblock %}

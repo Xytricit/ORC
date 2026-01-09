@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+{% block dashboard_css %}{% endblock %}
+{% endblock %}
+
+{% block body %}
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    {% include 'components/sidebar.html' %}
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <span>|||</span>
+            </button>
+            <h1 class="top-navbar-title">{% block page_title %}Dashboard{% endblock %}</h1>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+</script>
+{% endblock %}
