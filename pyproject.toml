@@ -108,7 +108,7 @@ Repository = "https://github.com/xytricit/orc"
 Changelog = "https://github.com/xytricit/orc/blob/main/CHANGELOG.md"
 
 [project.scripts]
-orc = "orc.cli:main"
+orc = "orc.cli_main:main"
 
 [tool.setuptools]
 packages = ["orc"]

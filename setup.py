@@ -13,7 +13,7 @@ setup(
     packages=find_packages(include=['orc', 'orc.*']),
     entry_points={
         'console_scripts': [
-            'orc=orc.cli:main',
+            'orc=orc.cli_main:main',
         ],
     },
     install_requires=[
