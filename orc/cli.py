@@ -719,8 +719,17 @@ def serve(port, host, db):
     """Start ORC web interface and API server.
     
     Launches a web dashboard for interactive code analysis.
+    NOTE: Web interface requires separate installation (orc-cli[web])
     """
-    from orc.web import app
+    try:
+        from orc.web import app
+    except ImportError:
+        console.print(f"\n[red]Error:[/red] Web interface not installed.")
+        console.print("\nThe web interface is deployed separately from the CLI.")
+        console.print("To install web dependencies locally, run:")
+        console.print("  [cyan]pip install orc-cli[web][/cyan]\n")
+        console.print("Or deploy the web app separately to a domain.")
+        sys.exit(1)
     
     db_path = Path(db)
     

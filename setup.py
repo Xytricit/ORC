@@ -25,6 +25,11 @@ setup(
         'python-dotenv>=1.0.0',
         'dataclasses-json>=0.5.0',
         'prompt_toolkit>=3.0.0',
+        # AI providers included by default
+        'groq>=0.5.0',
+        'openai>=1.0.0',
+        'anthropic>=0.18.0',
+        'google-generativeai>=0.4.0',
     ],
     extras_require={
         'ai': [

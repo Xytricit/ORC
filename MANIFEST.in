@@ -33,12 +33,18 @@ recursive-include orc/storage/migrations *.sql
 # Include documentation
 recursive-include docs *.md
 
+# Exclude web app (deployed separately)
+recursive-exclude orc/web *
+prune orc/web
+
 # Exclude unnecessary files
 global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude .DS_Store
 global-exclude *.so
 global-exclude .git*
+prune orc/.venv
+prune orc/.orc
 global-exclude .venv
 global-exclude .vscode
 global-exclude .idea
@@ -49,3 +55,4 @@ recursive-exclude test_project *
 recursive-exclude build *
 recursive-exclude dist *
 recursive-exclude instance *
+recursive-exclude orc *.db
