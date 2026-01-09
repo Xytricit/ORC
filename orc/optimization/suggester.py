@@ -3,7 +3,7 @@
 from typing import Dict, List
 from dataclasses import dataclass
 from .algorithm_detector import AlgorithmDetector, AlgorithmDetection
-from analysis.complexity import ComplexityReport
+from orc.analysis.complexity import ComplexityReport
 
 
 @dataclass

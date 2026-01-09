@@ -2,7 +2,7 @@
 ORC Analysis: Pattern Detection
 """
 from typing import Dict, List
-from core.indexer import ModuleInfo
+from orc.core.indexer import ModuleInfo
 
 class PatternAnalyzer:
     """Detect code patterns, duplication, and antipatterns"""

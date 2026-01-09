@@ -6,7 +6,7 @@ import json
 from orc_package.analysis.dead_code import DeadCodeAnalyzer
 from orc_package.analysis.metrics import MetricsAnalyzer
 from orc_package.analysis.dependencies import DependencyAnalyzer
-from storage.graph_db import GraphStorage
+from orc.storage.graph_db import GraphStorage
 from orc_package.config.settings import load_config
 
 router = APIRouter()

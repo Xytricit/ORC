@@ -1,9 +1,11 @@
 # Production Configuration for ORC Web Application
+import os
+import secrets
 
 # Flask configuration
 DEBUG = False
 TESTING = False
-SECRET_KEY = 'orc-secret-key-change-in-production'
+SECRET_KEY = os.getenv('ORC_SECRET_KEY', secrets.token_hex(32))
 
 # Server configuration
 HOST = '0.0.0.0'

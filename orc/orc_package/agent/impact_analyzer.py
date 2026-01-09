@@ -2,8 +2,8 @@
 ORC Agent: Impact Analyzer
 """
 from typing import Dict, List
-from core.indexer import ModuleInfo
-from core.graph_builder import DependencyGraph
+from orc.core.indexer import ModuleInfo
+from orc.core.graph_builder import DependencyGraph
 
 class ImpactAnalyzer:
     """Assess the potential impact of code changes"""

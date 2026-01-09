@@ -2,7 +2,13 @@
 
 Handles generation and management of vector embeddings for semantic search.
 """
-import numpy as np
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None
+
 from typing import List, Dict, Optional
 from pathlib import Path
 import hashlib
@@ -150,4 +156,3 @@ class SemanticSearch:
             })
         
         return formatted_results
-</content>

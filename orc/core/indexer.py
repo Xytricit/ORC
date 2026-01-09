@@ -9,23 +9,41 @@ from dataclasses import dataclass, field
 import hashlib
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from parsers import (
-    PythonParser as V2PythonParser,
-    JavaScriptParser,
-    TypeScriptParser,
-    ReactParser,
-    HTMLCSSParser,
-    DjangoParser,
-    FastAPIParser,
-    TailwindParser,
-    SCSSParser,
-    SASSParser,
-    LESSParser,
-    MarkdownParser,
-    JSONParser,
-    YAMLParser,
-)
-from storage.cache import Cache
+try:
+    from parsers import (
+        PythonParser as V2PythonParser,
+        JavaScriptParser,
+        TypeScriptParser,
+        ReactParser,
+        HTMLCSSParser,
+        DjangoParser,
+        FastAPIParser,
+        TailwindParser,
+        SCSSParser,
+        SASSParser,
+        LESSParser,
+        MarkdownParser,
+        JSONParser,
+        YAMLParser,
+    )
+except ImportError:
+    from orc.parsers import (
+        PythonParser as V2PythonParser,
+        JavaScriptParser,
+        TypeScriptParser,
+        ReactParser,
+        HTMLCSSParser,
+        DjangoParser,
+        FastAPIParser,
+        TailwindParser,
+        SCSSParser,
+        SASSParser,
+        LESSParser,
+        MarkdownParser,
+        JSONParser,
+        YAMLParser,
+    )
+from orc.storage.cache import Cache
 
 
 @dataclass
@@ -265,7 +283,7 @@ class PythonIndexer:
                 ".venv/",
                 "venv/",
                 "node_modules/",
-                "__pycache__\/",
+                "__pycache__/",
                 ".git/",
                 "dist/",
                 "build/",
@@ -403,20 +421,59 @@ class MultiLanguageIndexer:
 
     def _discover_files(self, root: Path) -> List[Path]:
         """Discover candidate source files for all known extensions."""
+        # Read .orcignore patterns
+        ignore_patterns = list(getattr(self.config, 'ignore_patterns', []) or [])
+        ignore_patterns.extend(self._read_orcignore(root))
+        
         files: List[Path] = []
         exts = set(self.parsers.keys())
         for ext in exts:
             for file in root.rglob(f'*{ext}'):
-                if not self._should_ignore(file):
+                if not self._should_ignore(file, ignore_patterns):
                     # Respect max file size similar to PythonIndexer
-                    if file.stat().st_size > self.config.max_file_size_mb * 1024 * 1024:
+                    try:
+                        if file.stat().st_size > self.config.max_file_size_mb * 1024 * 1024:
+                            continue
+                    except OSError:
                         continue
                     files.append(file)
         return files
 
-    def _should_ignore(self, path: Path) -> bool:
-        patterns = getattr(self.config, 'ignore_patterns', []) or []
+    def _should_ignore(self, path: Path, patterns: List[str]) -> bool:
         return any(path.match(pattern) for pattern in patterns)
+    
+    def _read_orcignore(self, root_path: Path) -> List[str]:
+        """Read .orcignore file from root_path and return glob patterns.
+        
+        Uses the same logic as PythonIndexer for consistency.
+        """
+        orcignore_path = root_path / '.orcignore'
+        ignore_patterns: List[str] = []
+
+        if not orcignore_path.exists():
+            return ignore_patterns
+
+        try:
+            with orcignore_path.open('r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip empty lines and comments
+                    if not line or line.startswith('#'):
+                        continue
+
+                    # Treat trailing '/' as a directory pattern
+                    if line.endswith('/'):
+                        # Match this directory name anywhere in the tree
+                        name = line.rstrip('/').lstrip('./')
+                        pattern = f"**/{name}/**"
+                    else:
+                        # Generic glob applied anywhere in the path
+                        pattern = f"**/{line}"
+                    ignore_patterns.append(pattern)
+        except Exception:
+            return []
+
+        return ignore_patterns
 
     def _merge_into_index(self, index: Dict[str, Dict], result: Dict) -> None:
         """Merge a single parser result into the global index."""

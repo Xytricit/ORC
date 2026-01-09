@@ -3,9 +3,15 @@ Context Builder for AI Integration
 Assembles minimal relevant code for AI queries
 """
 from typing import List, Dict, Optional
-import numpy as np
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None
+
 from .embeddings import SemanticSearch, EmbeddingGenerator
-from storage.vector_store import VectorStore
+from orc.storage.vector_store import VectorStore
 import math
 
 

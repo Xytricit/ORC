@@ -9,12 +9,12 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from orc_package.config.settings import load_config
-from storage.graph_db import GraphStorage
-from core.analyzer import Analyzer
-from agent.recommender import Recommender
-from core.index_service import IndexService
-from analysis.complexity import ComplexityAnalyzer
-from analysis.optimizer import Optimizer
+from orc.storage.graph_db import GraphStorage
+from orc.core.analyzer import Analyzer
+from orc_package.agent.recommender import Recommender
+from orc.core.index_service import IndexService
+from orc.analysis.complexity import ComplexityAnalyzer
+from orc.analysis.optimizer import Optimizer
 
 app = Flask(__name__)
 

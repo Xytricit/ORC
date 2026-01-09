@@ -6,15 +6,15 @@ import tempfile
 import os
 from pathlib import Path
 
-from orc_package.config.settings import ORCConfig
-from core.indexer import PythonIndexer
-from storage.graph_db import GraphStorage
-from orc_package.analysis.dead_code import DeadCodeAnalyzer
-from orc_package.analysis.metrics import MetricsAnalyzer
-from orc_package.analysis.dependencies import DependencyAnalyzer
-from orc_package.analysis.patterns import PatternAnalyzer
-from analysis.complexity import ComplexityAnalyzer
-from analysis.optimizer import Optimizer
+from orc.orc_package.config.settings import ORCConfig
+from orc.core.indexer import PythonIndexer
+from orc.storage.graph_db import GraphStorage
+from orc.orc_package.analysis.dead_code import DeadCodeAnalyzer
+from orc.orc_package.analysis.metrics import MetricsAnalyzer
+from orc.orc_package.analysis.dependencies import DependencyAnalyzer
+from orc.orc_package.analysis.patterns import PatternAnalyzer
+from orc.analysis.complexity import ComplexityAnalyzer
+from orc.analysis.optimizer import Optimizer
 
 
 def test_config_creation():

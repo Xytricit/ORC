@@ -3,7 +3,12 @@
 Provides semantic search capabilities using vector embeddings.
 """
 import sqlite3
-import numpy as np
+try:
+    import numpy as np
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
+    np = None
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 import pickle

@@ -11,8 +11,8 @@ def test_context_compression():
     """Test the context compression engine with a simple example"""
 
     try:
-        from core.index_service import IndexService
-        from orc_package.config.settings import ORCConfig
+        from orc.core.index_service import IndexService
+        from orc.orc_package.config.settings import ORCConfig
 
         # Create a temporary directory with test code
         with tempfile.TemporaryDirectory() as temp_dir:

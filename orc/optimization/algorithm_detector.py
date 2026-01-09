@@ -181,10 +181,10 @@ class AlgorithmDetector:
         detections = []
 
         # Get the source code for this function
-        import astor  # type: ignore
         try:
+            import astor  # type: ignore
             func_code = astor.to_source(func_node)
-        except:
+        except (ImportError, Exception):
             # If astor is not available, extract manually
             lines = full_code.split('\n')
             start_line = func_node.lineno - 1

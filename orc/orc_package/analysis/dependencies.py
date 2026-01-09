@@ -2,8 +2,8 @@
 ORC Analysis: Dependency Analysis
 """
 from typing import Dict, List
-from core.indexer import ModuleInfo
-from core.graph_builder import DependencyGraph
+from orc.core.indexer import ModuleInfo
+from orc.core.graph_builder import DependencyGraph
 
 class DependencyAnalyzer:
     """Analyze dependencies and coupling in the codebase"""

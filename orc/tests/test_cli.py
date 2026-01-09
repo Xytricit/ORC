@@ -32,8 +32,8 @@ if __name__ == "__main__":
         # Test that we can run the index command
         # We'll test this by importing and calling the function directly
         # since running the CLI as a subprocess would be complex
-        from orc_package.config.settings import ORCConfig
-        from core.index_service import IndexService
+        from orc.orc_package.config.settings import ORCConfig
+        from orc.core.index_service import IndexService
         
         config = ORCConfig(project_root=Path(temp_dir))
         service = IndexService(config)
@@ -66,16 +66,16 @@ if __name__ == "__main__":
         test_file.write_text(test_code)
 
         # Index the project first
-        from orc_package.config.settings import ORCConfig
-        from core.index_service import IndexService
+        from orc.orc_package.config.settings import ORCConfig
+        from orc.core.index_service import IndexService
         
         config = ORCConfig(project_root=Path(temp_dir))
         service = IndexService(config)
         service.index_project(Path(temp_dir))
 
         # Now test dead code analysis
-        from storage.graph_db import GraphStorage
-        from orc_package.analysis.dead_code import DeadCodeAnalyzer
+        from orc.storage.graph_db import GraphStorage
+        from orc.orc_package.analysis.dead_code import DeadCodeAnalyzer
         
         storage = GraphStorage(config.index_path)
         modules = storage.load_modules()
@@ -109,16 +109,16 @@ def complex_function():
         test_file.write_text(test_code)
 
         # Index the project
-        from orc_package.config.settings import ORCConfig
-        from core.index_service import IndexService
+        from orc.orc_package.config.settings import ORCConfig
+        from orc.core.index_service import IndexService
         
         config = ORCConfig(project_root=Path(temp_dir))
         service = IndexService(config)
         service.index_project(Path(temp_dir))
 
         # Test analysis
-        from storage.graph_db import GraphStorage
-        from core.analyzer import Analyzer
+        from orc.storage.graph_db import GraphStorage
+        from orc.core.analyzer import Analyzer
         
         storage = GraphStorage(config.index_path)
         modules = storage.load_modules()
@@ -151,17 +151,17 @@ def get_user_data(user_id):
         test_file.write_text(test_code)
 
         # Index the project
-        from orc_package.config.settings import ORCConfig
-        from core.index_service import IndexService
+        from orc.orc_package.config.settings import ORCConfig
+        from orc.core.index_service import IndexService
         
         config = ORCConfig(project_root=Path(temp_dir))
         service = IndexService(config)
         service.index_project(Path(temp_dir))
 
         # Test query functionality
-        from storage.graph_db import GraphStorage
-        from orc_package.agent.query_engine import QueryEngine
-        from core.graph_builder import DependencyGraph
+        from orc.storage.graph_db import GraphStorage
+        from orc.orc_package.agent.query_engine import QueryEngine
+        from orc.core.graph_builder import DependencyGraph
         
         storage = GraphStorage(config.index_path)
         modules = storage.load_modules()
@@ -188,8 +188,8 @@ def test_cli_config_commands():
         os.chdir(temp_dir)
         
         # Test init command (create config)
-        from orc_package.config.settings import ORCConfig
-        from orc_package.cli.commands import init
+        from orc.orc_package.config.settings import ORCConfig
+        from orc.orc_package.cli.commands import init
         
         # This should create a .orcrc file
         import io
@@ -203,7 +203,7 @@ def test_cli_config_commands():
         assert os.path.exists(".orcrc")
         
         # Test config show command
-        from orc_package.cli.commands import config
+        from orc.orc_package.cli.commands import config
         f = io.StringIO()
         with redirect_stdout(f):
             config('show', None, None)

@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
 from orc_package.agent.query_engine import QueryEngine
-from storage.graph_db import GraphStorage
+from orc.storage.graph_db import GraphStorage
 from orc_package.config.settings import load_config
-from core.index_service import IndexService
+from orc.core.index_service import IndexService
 
 router = APIRouter()
 

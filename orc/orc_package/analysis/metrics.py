@@ -2,7 +2,7 @@
 ORC Analysis: Code Metrics Calculator
 """
 from typing import Dict, List
-from core.indexer import ModuleInfo
+from orc.core.indexer import ModuleInfo
 
 class MetricsAnalyzer:
     """Calculate code metrics like complexity, lines of code, etc."""

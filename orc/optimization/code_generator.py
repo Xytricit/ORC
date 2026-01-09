@@ -1,10 +1,16 @@
 """Code generator that creates optimized versions of functions based on analysis."""
 
 import ast
-import astor  # type: ignore
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 from .algorithm_detector import AlgorithmDetection
+
+# Optional astor import
+try:
+    import astor  # type: ignore
+    HAS_ASTOR = True
+except ImportError:
+    HAS_ASTOR = False
 
 
 @dataclass

@@ -4,8 +4,8 @@ ORC Agent: Natural Language Query Engine
 from typing import Dict, Any
 from dataclasses import dataclass
 import re
-from core.indexer import ModuleInfo
-from core.graph_builder import DependencyGraph
+from orc.core.indexer import ModuleInfo
+from orc.core.graph_builder import DependencyGraph
 
 @dataclass
 class QueryResult:

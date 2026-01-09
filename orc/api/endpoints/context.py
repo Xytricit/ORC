@@ -3,8 +3,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 
-from api.schemas import ContextQuery, ContextResponse
-from core.index_service import IndexService
+from orc.api.schemas import ContextQuery, ContextResponse
+from orc.core.index_service import IndexService
 from orc_package.config.settings import load_config
 
 router = APIRouter()

@@ -8,12 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pathlib import Path
 
-from api.schemas import ContextQuery, ContextResponse, SemanticSearchResponse
-from core.index_service import IndexService
+from orc.api.schemas import ContextQuery, ContextResponse, SemanticSearchResponse
+from orc.core.index_service import IndexService
 from orc_package.config.settings import load_config
 
 # Import API endpoints
-from api.endpoints import context, optimization, analysis, query
+from orc.api.endpoints import context, optimization, analysis, query
 
 app = FastAPI(title="ORC API", version="2.0")
 

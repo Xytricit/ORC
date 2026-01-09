@@ -4,8 +4,8 @@ ORC Agent: Recommendation Generator
 from typing import List, Dict, Any
 from dataclasses import dataclass
 from enum import Enum
-from core.indexer import ModuleInfo
-from core.graph_builder import DependencyGraph
+from orc.core.indexer import ModuleInfo
+from orc.core.graph_builder import DependencyGraph
 
 class Priority(Enum):
     """Recommendation priority levels"""

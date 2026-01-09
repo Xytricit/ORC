@@ -6,7 +6,11 @@ import json
 import pickle
 from pathlib import Path
 from typing import Dict, Tuple
-from core.indexer import ModuleInfo
+
+try:
+    from core.indexer import ModuleInfo
+except ImportError:
+    from orc.core.indexer import ModuleInfo
 
 class GraphStorage:
     """SQLite database operations for storing indexed data and graphs"""
@@ -117,6 +121,98 @@ class GraphStorage:
             )
         ''')
 
+        # ============================================
+        # PERFORMANCE INDEXES for large databases
+        # ============================================
+        
+        # Indexes for function_index (most queried table)
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_function_file_path 
+            ON function_index(file_path)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_function_name 
+            ON function_index(name)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_function_complexity 
+            ON function_index(complexity DESC)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_function_language 
+            ON function_index(language)
+        ''')
+        
+        # Indexes for class_index
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_class_file_path 
+            ON class_index(file_path)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_class_name 
+            ON class_index(name)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_class_language 
+            ON class_index(language)
+        ''')
+        
+        # Indexes for import_index (for dependency analysis)
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_import_file_path 
+            ON import_index(file_path)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_import_module 
+            ON import_index(module)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_import_composite 
+            ON import_index(module, file_path)
+        ''')
+        
+        # Indexes for export_index
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_export_file_path 
+            ON export_index(file_path)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_export_symbol 
+            ON export_index(symbol)
+        ''')
+        
+        # Indexes for file_index
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_file_language 
+            ON file_index(language)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_file_loc 
+            ON file_index(loc DESC)
+        ''')
+        
+        # ============================================
+        # PRAGMA optimizations for SQLite performance
+        # ============================================
+        
+        # Use Write-Ahead Logging for better concurrency
+        cursor.execute('PRAGMA journal_mode=WAL')
+        
+        # Increase cache size (10MB default -> 50MB for large codebases)
+        cursor.execute('PRAGMA cache_size=-51200')  # Negative = KB
+        
+        # Store temp tables in memory for speed
+        cursor.execute('PRAGMA temp_store=MEMORY')
+        
+        # Synchronous=NORMAL provides good balance of safety and speed
+        cursor.execute('PRAGMA synchronous=NORMAL')
+        
+        # Optimize for read-heavy workloads
+        cursor.execute('PRAGMA query_only=OFF')
+        
+        # Enable memory-mapped I/O for large databases (256MB)
+        cursor.execute('PRAGMA mmap_size=268435456')
+
         conn.commit()
         conn.close()
 
@@ -176,7 +272,10 @@ class GraphStorage:
             # Reconstruct ModuleInfo object
             functions = {}
             for name, func_data in data['functions'].items():
-                from core.indexer import FunctionInfo
+                try:
+                    from core.indexer import FunctionInfo
+                except ImportError:
+                    from orc.core.indexer import FunctionInfo
                 functions[name] = FunctionInfo(
                     name=func_data['name'],
                     file_path=func_data['file_path'],

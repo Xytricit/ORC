@@ -2,7 +2,22 @@ click>=8.0.0          # CLI framework
 rich>=10.0.0          # Terminal formatting
 networkx>=2.6.0       # Graph algorithms
 pyyaml>=5.4.0         # YAML parsing
-flask>=2.0.0          # Web framework (optional)
+flask>=2.0.0          # Web framework
+flask-login>=0.6.2    # User session management
+flask-sqlalchemy>=3.0.5 # Database ORM
+flask-bcrypt>=1.0.1   # Password hashing
+flask-wtf>=1.1.1      # Forms with CSRF protection
+wtforms>=3.0.1        # Form validation
+email-validator>=2.0.0 # Email validation
 dataclasses-json>=0.5 # JSON serialization
 pytest>=7.0.0         # Testing framework
-groq>=0.5.0            # Groq LLM client for ORC AI
+python-dotenv>=1.0.0  # Load .env files
+httpx>=0.24.0         # HTTP client (for Ollama)
+prompt_toolkit>=3.0.0 # Better input with autocomplete
+
+# AI Providers - install only what you need!
+# Users bring their own API keys
+groq>=0.5.0           # Groq (free tier)
+openai>=1.0.0         # OpenAI / DeepSeek
+anthropic>=0.18.0     # Anthropic Claude
+google-generativeai>=0.4.0  # Google Gemini

@@ -3,7 +3,7 @@ ORC Analysis: Dead Code Detection
 """
 from typing import List, Dict
 from dataclasses import dataclass
-from core.indexer import ModuleInfo
+from orc.core.indexer import ModuleInfo
 
 @dataclass
 class DeadCodeReport:

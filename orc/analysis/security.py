@@ -231,7 +231,7 @@ class SecurityScanner:
     def print_security_summary(self, issues: List[SecurityIssue]):
         """Print a summary of security issues to console."""
         if not issues:
-            print("✅ No security issues found!")
+            print("No security issues found!")
             return
         
         print(f"\n🚨 Found {len(issues)} security issues:")

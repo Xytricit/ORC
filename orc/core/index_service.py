@@ -18,9 +18,9 @@ import hashlib
 
 from .indexer import PythonIndexer, MultiLanguageIndexer
 from .graph_builder import DependencyGraph
-from storage.graph_db import GraphStorage
-from storage.vector_store import VectorStore
-from context.builder import ContextBuilder
+from orc.storage.graph_db import GraphStorage
+from orc.storage.vector_store import VectorStore
+from orc.context.builder import ContextBuilder
 from orc_package.config.settings import ORCConfig
 
 

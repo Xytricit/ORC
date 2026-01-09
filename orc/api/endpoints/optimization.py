@@ -4,9 +4,9 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any
 import json
 
-from orc_package.optimization.suggester import suggest_optimizations, OptimizationSuggestion
-from orc_package.analysis.complexity import ComplexityAnalyzer, ComplexityReport
-from storage.graph_db import GraphStorage
+from orc.optimization.suggester import suggest_optimizations, OptimizationSuggestion
+from orc.analysis.complexity import ComplexityAnalyzer, ComplexityReport
+from orc.storage.graph_db import GraphStorage
 from orc_package.config.settings import load_config
 
 router = APIRouter()

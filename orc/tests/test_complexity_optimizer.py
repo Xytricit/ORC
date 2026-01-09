@@ -2,8 +2,8 @@
 Tests for complexity analysis and optimization modules
 """
 import pytest
-from analysis.complexity import ComplexityAnalyzer, ComplexityReport
-from analysis.optimizer import Optimizer
+from orc.analysis.complexity import ComplexityAnalyzer, ComplexityReport
+from orc.analysis.optimizer import Optimizer
 
 
 def test_complexity_analyzer_basic():
