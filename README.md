@@ -2,13 +2,17 @@
 
 <div align="center">
 
-![ORC Logo](assets/orclogo.png)
+<img src="assets/orclogo.png" alt="ORC Logo" width="200"/>
 
 **Your AI-Powered Code Intelligence Assistant**
 
+[![CI/CD](https://github.com/xytricit/orc/actions/workflows/ci.yml/badge.svg)](https://github.com/xytricit/orc/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/xytricit/orc/branch/main/graph/badge.svg)](https://codecov.io/gh/xytricit/orc)
+[![PyPI version](https://badge.fury.io/py/orc-cli.svg)](https://badge.fury.io/py/orc-cli)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Downloads](https://pepy.tech/badge/orc-cli)](https://pepy.tech/project/orc-cli)
 
 [Features](#-features) • [Installation](#-installation) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
@@ -28,6 +32,23 @@ ORC is an intelligent code analysis and refactoring assistant that combines powe
 - **Lightning Fast**: Efficiently indexes and analyzes large codebases
 - **Modern UI**: Sleek black & green interface with real-time notifications
 - **Privacy First**: All analysis runs locally, your code never leaves your machine
+
+---
+
+## 📸 Screenshots
+
+### ORC Banner
+![ORC Banner](orcbanner.png)
+
+### Web Dashboard
+![ORC Web Dashboard](dashboard.png)
+
+*Beautiful black & green interface with real-time stats and project management*
+
+### CLI Commands
+![ORC CLI Commands](commands.png)
+
+*Powerful command-line interface for code analysis and AI chat*
 
 ---
 
@@ -72,53 +93,19 @@ orc hotspots           # Find performance issues
 - Python 3.8 or higher
 - pip package manager
 
-### Option 1: Install from PyPI (Recommended)
+### Install ORC
 ```bash
-# Install the latest stable release
+# Install the latest release
 pip install orc-cli
 
 # Verify installation
 orc --version
 ```
 
-### Option 2: Install from TestPyPI (Beta/Testing)
-```bash
-# Install from TestPyPI for testing new features
-pip install -i https://test.pypi.org/simple/ orc-cli==2.0.0
-
-# Verify installation
-orc --version
-```
-
-### Option 3: Install from GitHub (Latest Development)
-```bash
-# Install directly from GitHub main branch
-pip install git+https://github.com/xytricit/orc.git
-
-# Or clone and install in development mode
-git clone https://github.com/xytricit/orc.git
-cd orc
-pip install -e .
-
-# Verify installation
-orc --version
-```
-
-### Optional: Install with Web Interface (Local Development)
-```bash
-# If you want to run the web interface locally
-pip install orc-cli[web]
-
-# Note: The production web app is deployed separately at [your-domain]
-```
-
 ### Upgrading
 ```bash
 # Upgrade to the latest version
 pip install --upgrade orc-cli
-
-# Or from TestPyPI
-pip install --upgrade -i https://test.pypi.org/simple/ orc-cli
 ```
 
 ---
@@ -173,30 +160,6 @@ Now chat with your codebase using natural language!
 
 ---
 
-## 🎨 Screenshots
-
-### AI-Powered Chat
-![CLI Chat](docs/screenshots/cli_chat.png)
-
-### Web Dashboard
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Analysis Results
-![Analysis](docs/screenshots/analysis.png)
-
----
-
-## 🛠️ Technology Stack
-
-- **Backend**: Python, Flask, SQLAlchemy
-- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
-- **AI Integration**: Multi-provider support (Groq, OpenAI, Anthropic, DeepSeek)
-- **Code Analysis**: AST parsing, static analysis
-- **Database**: SQLite (local), PostgreSQL (production)
-- **CLI**: Click, Rich, Prompt Toolkit
-
----
-
 ## Contributing
 
 We love contributions! Whether it's bug fixes, new features, or documentation improvements, all help is appreciated.
@@ -214,48 +177,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ---
 
-## 📋 Roadmap
-
-### Version 2.1 (Next Release)
-- [ ] VS Code Extension
-- [ ] GitHub Integration
-- [ ] Multi-language support (Java, Go, Rust)
-- [ ] Team collaboration features
-- [ ] Advanced refactoring suggestions
-
-### Future Plans
-- [ ] JetBrains IDE Plugin
-- [ ] CI/CD Integration
-- [ ] Cloud-hosted option
-- [ ] Enterprise features
-- [ ] Real-time collaboration
-
----
-
-## 🔒 Security
-
-ORC takes security seriously:
-- All code analysis runs **locally on your machine**
-- API keys are **encrypted** and never exposed
-- No code is sent to external servers (except AI API calls)
-- Open source - audit the code yourself
-
-See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnerabilities.
-
----
-
 ## 📜 License
 
 ORC is released under the [MIT License](LICENSE). Feel free to use it in your projects, both personal and commercial.
-
----
-
-## 💖 Acknowledgments
-
-- Built with love by the ORC team
-- Inspired by the best code analysis tools
-- Special thanks to all our contributors
-- AI providers: Groq, OpenAI, Anthropic, DeepSeek
 
 ---
 
@@ -263,14 +187,13 @@ ORC is released under the [MIT License](LICENSE). Feel free to use it in your pr
 
 - [Report a Bug](https://github.com/xytricit/orc/issues/new?template=bug_report.md)
 - [Request a Feature](https://github.com/xytricit/orc/issues/new?template=feature_request.md)
-- [Join Discord](https://discord.gg/orc-community) (Coming Soon)
 - [Email Us](mailto:andohbempahnanaakwasi@gmail.com)
 
 ---
 
 ## 🌟 Star Us!
 
-If you find ORC useful, please give us a star on GitHub! It helps us grow and improve.
+If you find ORC useful, please give us a star on GitHub!
 
 [![GitHub stars](https://img.shields.io/github/stars/xytricit/orc?style=social)](https://github.com/xytricit/orc/stargazers)
 
@@ -279,7 +202,5 @@ If you find ORC useful, please give us a star on GitHub! It helps us grow and im
 <div align="center">
 
 **Made with 💚 by developers, for developers**
-
-[Website](https://orc-tool.dev) • [Documentation](https://docs.orc-tool.dev) • [Blog](https://blog.orc-tool.dev)
 
 </div>
