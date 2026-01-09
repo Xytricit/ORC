@@ -1,0 +1,51 @@
+# Include documentation files
+include README.md
+include LICENSE
+include CHANGELOG.md
+include SECURITY.md
+include CONTRIBUTING.md
+include ORC.md
+
+# Include requirements files
+include requirements.txt
+recursive-include orc *.txt
+
+# Include web templates
+recursive-include orc/web/templates *.html
+
+# Include static files (CSS, JS, images)
+recursive-include orc/web/static *.css
+recursive-include orc/web/static *.js
+recursive-include orc/web/static *.png
+recursive-include orc/web/static *.svg
+recursive-include orc/web/static *.jpg
+recursive-include orc/web/static *.ico
+
+# Include configuration files
+recursive-include orc *.yaml
+recursive-include orc *.yml
+recursive-include orc *.json
+recursive-include orc .env.example
+
+# Include SQL migrations
+recursive-include orc/storage/migrations *.sql
+
+# Include documentation
+recursive-include docs *.md
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.so
+global-exclude .git*
+global-exclude .venv
+global-exclude .vscode
+global-exclude .idea
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude tests *
+recursive-exclude test_project *
+recursive-exclude build *
+recursive-exclude dist *
+recursive-exclude instance *
