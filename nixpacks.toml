@@ -5,4 +5,4 @@ nixPkgs = ["python39Full"]
 cmds = ["python -m pip install -r requirements-web.txt"]
 
 [start]
-cmd = "gunicorn -w 4 -b 0.0.0.0:$PORT orc.web.app_new:app"
+cmd = "python -m gunicorn -w 4 -b 0.0.0.0:$PORT orc.web.app_new:app"
