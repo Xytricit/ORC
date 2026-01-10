@@ -64,7 +64,7 @@ analyze my codebase for security issues
 
 ### Requirements
 
-- Python 3.8+
+- Python 3.9+
 - At least one AI provider API key (Groq, OpenAI, etc.)
 
 ### Documentation

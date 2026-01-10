@@ -7,7 +7,7 @@ name = "orc-cli"
 version = "1.0.0-beta"
 description = "ORC - Optimization & Refactoring Catalyst - AI-Powered Codebase Intelligence"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 authors = [
     {name = "ORC Team", email = "dev@orc-project.dev"}
 ]
@@ -30,7 +30,6 @@ classifiers = [
     "Topic :: Software Development :: Quality Assurance",
     "Topic :: Software Development :: Code Generators",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",

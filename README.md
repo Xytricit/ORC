@@ -9,7 +9,7 @@
 [![CI/CD](https://github.com/xytricit/orc/actions/workflows/ci.yml/badge.svg)](https://github.com/xytricit/orc/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/xytricit/orc/branch/main/graph/badge.svg)](https://codecov.io/gh/xytricit/orc)
 [![PyPI version](https://badge.fury.io/py/orc-cli.svg)](https://badge.fury.io/py/orc-cli)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Downloads](https://pepy.tech/badge/orc-cli)](https://pepy.tech/project/orc-cli)
@@ -90,7 +90,7 @@ orc hotspots           # Find performance issues
 ## Installation
 
 ### Prerequisites
-- Python 3.8 or higher
+- Python 3.9 or higher
 - pip package manager
 
 ### Install ORC

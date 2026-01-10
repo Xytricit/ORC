@@ -4,7 +4,7 @@ Welcome to ORC (Optimization & Refactoring Catalyst)! This guide will help you g
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - pip package manager
 - Basic familiarity with command line
 

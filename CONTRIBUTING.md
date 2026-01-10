@@ -14,7 +14,7 @@ Thank you for your interest in contributing to ORC! We're excited to have you as
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.9+
 - Git
 - Basic understanding of Python and web development
 
