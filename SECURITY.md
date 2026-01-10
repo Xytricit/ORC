@@ -14,7 +14,7 @@ We take security vulnerabilities seriously. If you discover a security issue in 
 ### How to Report
 
 1. **DO NOT** open a public GitHub issue
-2. Email security concerns to: [security@orc-project.dev] (or your team's security email)
+2. Email security concerns to: andohbempahnanaakwasi@gmail.com
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
