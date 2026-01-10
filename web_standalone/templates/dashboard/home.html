@@ -1,0 +1,120 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_home.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Greeting -->
+<div class="dashboard-greeting">
+    <h1>Welcome back, {{ current_user.full_name or current_user.username }}!</h1>
+    <p>Here's what's happening with your projects today.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">PR</div>
+        </div>
+        <div class="stat-value">{{ project_count or 0 }}</div>
+        <div class="stat-label">Total Projects</div>
+        {% if project_count > 0 %}
+        <div class="stat-change positive">+{{ project_count }} this month</div>
+        {% endif %}
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">AN</div>
+        </div>
+        <div class="stat-value">{{ analysis_count or 0 }}</div>
+        <div class="stat-label">Analyses Run</div>
+        {% if analysis_count > 0 %}
+        <div class="stat-change positive">+{{ recent_analysis_count or 0 }} this week</div>
+        {% endif %}
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">DC</div>
+        </div>
+        <div class="stat-value">{{ dead_code_found or 0 }}</div>
+        <div class="stat-label">Dead Code Found</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon">AI</div>
+        </div>
+        <div class="stat-value">{{ api_configs_count or 0 }}</div>
+        <div class="stat-label">AI Providers</div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="quick-actions">
+    <div class="section-header">
+        <h2 class="section-title">Quick Actions</h2>
+    </div>
+    <div class="actions-grid">
+        <a href="{{ url_for('projects.new') }}" class="action-card">
+            <div class="action-icon">+</div>
+            <div class="action-title">New Project</div>
+            <div class="action-description">Index a new codebase</div>
+        </a>
+
+        <a href="{{ url_for('analysis.run') }}" class="action-card">
+            <div class="action-icon">AN</div>
+            <div class="action-title">Run Analysis</div>
+            <div class="action-description">Analyze your code</div>
+        </a>
+
+        <a href="{{ url_for('settings.api_config') }}" class="action-card">
+            <div class="action-icon">AI</div>
+            <div class="action-title">Configure AI</div>
+            <div class="action-description">Set up AI providers</div>
+        </a>
+
+        <a href="{{ url_for('analysis.history') }}" class="action-card">
+            <div class="action-icon">HI</div>
+            <div class="action-title">View History</div>
+            <div class="action-description">Past analyses</div>
+        </a>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="recent-activity">
+    <div class="section-header">
+        <h2 class="section-title">Recent Activity</h2>
+        <a href="{{ url_for('analysis.history') }}" class="section-link">View All</a>
+    </div>
+    
+    {% if recent_activities %}
+    <div class="activity-list">
+        {% for activity in recent_activities %}
+        <div class="activity-item">
+            <div class="activity-icon">{{ activity.type[:2].upper() }}</div>
+            <div class="activity-content">
+                <div class="activity-title">{{ activity.title }}</div>
+                <div class="activity-description">{{ activity.description }}</div>
+            </div>
+            <div class="activity-time">{{ activity.time }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-state-icon">AN</div>
+            <h3 class="empty-state-title">No Recent Activity</h3>
+            <p class="empty-state-description">Start by creating a project or running an analysis.</p>
+            <a href="{{ url_for('projects.new') }}" class="btn btn-primary">Create Your First Project</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
