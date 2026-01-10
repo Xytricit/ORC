@@ -9,7 +9,7 @@ if readme_file.exists():
 
 setup(
     name="orc-cli",
-    version="1.0.0",
+    version="1.0.0-beta",
     packages=find_packages(include=['orc', 'orc.*']),
     include_package_data=True,
     # Dependencies and entry points are in pyproject.toml
