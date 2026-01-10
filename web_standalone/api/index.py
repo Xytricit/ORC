@@ -1,111 +1,136 @@
 """
-Standalone ORC Web App - Vercel Compatible
-Just authentication and dashboard, no heavy dependencies
+ORC Web App - ASGI version for Vercel
+Using Starlette instead of Flask for serverless compatibility
 """
-from flask import Flask, render_template, redirect, url_for, flash, request
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+from starlette.applications import Starlette
+from starlette.routing import Route, Mount
+from starlette.responses import HTMLResponse, RedirectResponse
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
+from starlette.middleware import Middleware
+from starlette.middleware.sessions import SessionMiddleware
 import os
-from datetime import datetime
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('ORC_SECRET_KEY', 'dev-secret-change-me')
+# Setup
+templates = Jinja2Templates(directory="templates")
+SECRET_KEY = os.getenv('ORC_SECRET_KEY', 'dev-secret-change-me')
 
-# Simple in-memory storage for now (we'll add database later)
+# Simple user storage (in-memory for now)
 users_db = {}
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'signin'
+async def landing(request):
+    """Landing page"""
+    user = request.session.get('user')
+    if user:
+        return RedirectResponse(url='/dashboard', status_code=302)
+    return templates.TemplateResponse('landing.html', {'request': request})
 
-class User(UserMixin):
-    def __init__(self, id, username, email, password_hash):
-        self.id = id
-        self.username = username
-        self.email = email
-        self.password_hash = password_hash
+async def signin_get(request):
+    """Show signin page"""
+    user = request.session.get('user')
+    if user:
+        return RedirectResponse(url='/dashboard', status_code=302)
+    return templates.TemplateResponse('auth/signin.html', {'request': request})
+
+async def signin_post(request):
+    """Handle signin"""
+    form = await request.form()
+    username = form.get('username')
+    password = form.get('password')
     
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return users_db.get(user_id)
-
-@app.route('/')
-def landing():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    return render_template('landing.html')
-
-@app.route('/auth/signin', methods=['GET', 'POST'])
-def signin():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
+    # Check credentials (simplified for demo)
+    # In production, use proper password hashing
+    for user_id, user_data in users_db.items():
+        if user_data['username'] == username and user_data['password'] == password:
+            request.session['user'] = user_data
+            return RedirectResponse(url='/dashboard', status_code=302)
     
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        
-        # Find user
-        user = None
-        for u in users_db.values():
-            if u.username == username or u.email == username:
-                user = u
-                break
-        
-        if user and user.check_password(password):
-            login_user(user)
-            return redirect(url_for('dashboard'))
-        
-        flash('Invalid credentials', 'error')
-    
-    return render_template('auth/signin.html')
+    return templates.TemplateResponse('auth/signin.html', {
+        'request': request,
+        'error': 'Invalid credentials'
+    })
 
-@app.route('/auth/signup', methods=['GET', 'POST'])
-def signup():
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        # Check if user exists
-        for u in users_db.values():
-            if u.username == username or u.email == email:
-                flash('User already exists', 'error')
-                return redirect(url_for('signup'))
-        
-        # Create user
-        user_id = str(len(users_db) + 1)
-        user = User(
-            id=user_id,
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password)
-        )
-        users_db[user_id] = user
-        
-        login_user(user)
-        return redirect(url_for('dashboard'))
-    
-    return render_template('auth/signup.html')
+async def signin(request):
+    """Route signin requests"""
+    if request.method == 'GET':
+        return await signin_get(request)
+    else:
+        return await signin_post(request)
 
-@app.route('/auth/signout')
-@login_required
-def signout():
-    logout_user()
-    return redirect(url_for('landing'))
+async def signup_get(request):
+    """Show signup page"""
+    user = request.session.get('user')
+    if user:
+        return RedirectResponse(url='/dashboard', status_code=302)
+    return templates.TemplateResponse('auth/signup.html', {'request': request})
 
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('dashboard/home.html')
+async def signup_post(request):
+    """Handle signup"""
+    form = await request.form()
+    username = form.get('username')
+    email = form.get('email')
+    password = form.get('password')
+    
+    # Check if user exists
+    for user_data in users_db.values():
+        if user_data['username'] == username or user_data['email'] == email:
+            return templates.TemplateResponse('auth/signup.html', {
+                'request': request,
+                'error': 'User already exists'
+            })
+    
+    # Create user
+    user_id = str(len(users_db) + 1)
+    user_data = {
+        'id': user_id,
+        'username': username,
+        'email': email,
+        'password': password  # In production, hash this!
+    }
+    users_db[user_id] = user_data
+    request.session['user'] = user_data
+    
+    return RedirectResponse(url='/dashboard', status_code=302)
+
+async def signup(request):
+    """Route signup requests"""
+    if request.method == 'GET':
+        return await signup_get(request)
+    else:
+        return await signup_post(request)
+
+async def signout(request):
+    """Handle signout"""
+    request.session.clear()
+    return RedirectResponse(url='/', status_code=302)
+
+async def dashboard(request):
+    """Dashboard page"""
+    user = request.session.get('user')
+    if not user:
+        return RedirectResponse(url='/auth/signin', status_code=302)
+    return templates.TemplateResponse('dashboard/home.html', {
+        'request': request,
+        'user': user
+    })
+
+# Routes
+routes = [
+    Route('/', landing),
+    Route('/auth/signin', signin, methods=['GET', 'POST']),
+    Route('/auth/signup', signup, methods=['GET', 'POST']),
+    Route('/auth/signout', signout),
+    Route('/dashboard', dashboard),
+]
+
+# Create ASGI app
+app = Starlette(
+    debug=True,
+    routes=routes,
+    middleware=[
+        Middleware(SessionMiddleware, secret_key=SECRET_KEY)
+    ]
+)
 
 # Vercel needs this
 handler = app
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
