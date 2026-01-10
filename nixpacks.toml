@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["python39Full"]
+nixPkgs = ["python39", "python39Packages.pip"]
 
 [phases.install]
-cmds = ["python -m pip install -r requirements-web.txt"]
+cmds = ["pip install -r requirements-web.txt"]
 
 [start]
 cmd = "python -m gunicorn -w 4 -b 0.0.0.0:$PORT orc.web.app_new:app"
