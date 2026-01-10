@@ -18,6 +18,7 @@ from orc.web.settings import settings, analysis
 from orc.web.chat import chat
 from orc.web.api import api_bp, api
 from orc.web.docs import docs
+from orc.web.stats import stats
 from orc.web.database import init_db
 
 # Initialize Flask app
@@ -25,7 +26,12 @@ app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('ORC_SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///orc_web.db'
+
+# Use absolute path to ensure we always use the same database
+instance_path = Path(__file__).parent.parent.parent / 'instance'
+instance_path.mkdir(exist_ok=True)
+db_path = instance_path / 'orc_web.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_ENABLED'] = True
 
@@ -46,15 +52,29 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# Context processor to inject project_count into sidebar
+# Context processor to inject project_count and stats into sidebar
 @app.context_processor
 def inject_globals():
     from flask_login import current_user
     if current_user.is_authenticated:
-        from orc.web.models import Project
+        from orc.web.models import Project, AnalysisHistory
+        from sqlalchemy import func
+        
         project_count = Project.query.filter_by(user_id=current_user.id).count()
-        return dict(project_count=project_count)
-    return dict(project_count=0)
+        
+        # Calculate total files across all projects
+        total_files_result = db.session.query(func.sum(Project.file_count)).filter_by(user_id=current_user.id).scalar()
+        total_files = total_files_result if total_files_result else 0
+        
+        # Get total analyses count
+        total_analyses = AnalysisHistory.query.filter_by(user_id=current_user.id).count()
+        
+        return dict(
+            project_count=project_count,
+            total_files=total_files,
+            total_analyses=total_analyses
+        )
+    return dict(project_count=0, total_files=0, total_analyses=0)
 
 
 # Register blueprints
@@ -73,6 +93,7 @@ app.register_blueprint(projects)
 app.register_blueprint(settings)
 app.register_blueprint(analysis)
 app.register_blueprint(chat)
+app.register_blueprint(stats)
 app.register_blueprint(api_bp)
 app.register_blueprint(api)
 app.register_blueprint(docs)

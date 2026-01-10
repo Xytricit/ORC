@@ -6,8 +6,8 @@ ORC uses this to provide better, more personalized assistance.
 ## Project Info
 
 - Name: ORC
-- Languages: CSS, HTML, Python
-- Created: 2026-01-08
+- Languages: Python, JavaScript, HTML, CSS
+- Created: 2026-01-09
 
 ## Preferences
 
@@ -16,13 +16,12 @@ ORC uses this to provide better, more personalized assistance.
 - ai_model: default
 - compact_mode: false
 
-
 ## AI Memory (Auto-Updated)
 
 *This section is automatically maintained by ORC AI to remember your codebase.*
 
 ### Last Analysis
-- Date: 2026-01-09T15:41:25.376896
+- Date: 2026-01-10T10:07:28.493909
 - Total Files: None
 - Total LOC: None
 - Main Folders: 
@@ -31,12 +30,12 @@ ORC uses this to provide better, more personalized assistance.
 
 
 ### Known Issues
-- 6 potentially unused functions
+- 1 potentially unused functions
 
 ### Tools Recently Used
 - get_dead_code
-
-
+- get_file_content
+- cleanup_imports
 ## Project Notes
 
 Add any notes about your project here that might help ORC understand it better:

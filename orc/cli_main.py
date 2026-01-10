@@ -16,7 +16,7 @@ console = Console()
 try:
     from orc import __version__
 except ImportError:
-    __version__ = "2.0.0"
+    __version__ = "1.0.0"
 
 
 @click.group(invoke_without_command=True)
@@ -462,7 +462,7 @@ def init():
         console.print("[yellow]![/yellow] .orcrc already exists, skipping")
     else:
         config = {
-            'version': '2.0.0',
+            'version': '1.0.0',
             'ignore': [
                 'node_modules/',
                 '__pycache__/',
@@ -678,7 +678,7 @@ def delete(target, db, finding_id, yes, backup):
       orc delete path/to/file.py --yes
       orc delete --finding-id D-12
     """
-    console.print("[bold red]⚠ Code Deletion[/bold red]")
+    console.print("[bold red]WARNING: Code Deletion[/bold red]")
     console.print("\nThis feature will:")
     console.print("  1. Create a backup in .orc/backups/")
     console.print("  2. Remove the specified code")

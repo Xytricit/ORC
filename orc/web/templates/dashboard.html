@@ -76,7 +76,7 @@
                     <div class="stat-icon text-warning">
                         <i class="fas fa-bolt"></i>
                     </div>
-                    <div class="stat-number">{{ summary.complexity_score | round(1) or 0.0 }}</div>
+                    <div class="stat-number">{{ (summary.complexity_score | default(0.0)) | round(1) }}</div>
                     <div class="stat-label">Avg Complexity</div>
                 </div>
             </div>

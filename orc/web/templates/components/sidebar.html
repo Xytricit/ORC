@@ -19,6 +19,21 @@
         </div>
     </div>
 
+    <!-- Quick Stats -->
+    <div class="sidebar-stats">
+        <div class="sidebar-stats-title">Quick Stats</div>
+        <div class="sidebar-stats-grid">
+            <div class="sidebar-stat-item">
+                <div class="sidebar-stat-value">{{ total_files or 0 }}</div>
+                <div class="sidebar-stat-label">Files</div>
+            </div>
+            <div class="sidebar-stat-item">
+                <div class="sidebar-stat-value">{{ total_analyses or 0 }}</div>
+                <div class="sidebar-stat-label">Analyses</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="sidebar-nav">
         <!-- Main Section -->
@@ -37,6 +52,12 @@
                         {% if project_count %}
                         <span class="sidebar-nav-badge">{{ project_count }}</span>
                         {% endif %}
+                    </a>
+                </li>
+                <li class="sidebar-nav-item">
+                    <a href="{{ url_for('stats.overview') }}" class="sidebar-nav-link {% if request.endpoint and 'stats' in request.endpoint %}active{% endif %}">
+                        <span class="sidebar-nav-icon">ST</span>
+                        <span class="sidebar-nav-text">Statistics</span>
                     </a>
                 </li>
                 <li class="sidebar-nav-item">

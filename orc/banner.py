@@ -2,14 +2,19 @@ def get_orc_banner():
     """Get the ORC ASCII art banner in green"""
     banner = """
 [green]
-     ██████╗ ██████╗  ██████╗
-    ██╔═══██╗██╔══██╗██╔════╝
-    ██║   ██║██████╔╝██║     
-    ██║   ██║██╔══██╗██║     
-    ╚██████╔╝██║  ██║╚██████╗
-     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝
+    ╔═══════════════════════════════════════════════╗
+    ║                                               ║
+    ║     ██████╗ ██████╗  ██████╗                ║
+    ║    ██╔═══██╗██╔══██╗██╔════╝                ║
+    ║    ██║   ██║██████╔╝██║                     ║
+    ║    ██║   ██║██╔══██╗██║                     ║
+    ║    ╚██████╔╝██║  ██║╚██████╗                ║
+    ║     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝                ║
+    ║                                               ║
+    ╚═══════════════════════════════════════════════╝
 [/green]
-[dim]    Optimization & Refactoring Catalyst v2.0[/dim]
+[dim]    Optimization & Refactoring Catalyst v2.0
+    AI-Powered Codebase Intelligence Platform[/dim]
 """
     return banner
 
@@ -33,10 +38,13 @@ def print_startup_info(project_name, loc, languages):
     """Get the startup info line"""
     lang_str = ", ".join(languages) if languages else "Unknown"
     return f"""
-[dim]    Indexed:[/dim] [cyan]{project_name}[/cyan] [dim]|[/dim] [cyan]{loc:,} LOC[/cyan] [dim]|[/dim] [cyan]{lang_str}[/cyan]
-[dim]    Status:[/dim] [green]Ready[/green]
+[dim]    Project:[/dim]    [cyan]{project_name}[/cyan]
+[dim]    Lines:[/dim]      [cyan]{loc:,}[/cyan]
+[dim]    Languages:[/dim]  [cyan]{lang_str}[/cyan]
+[dim]    Status:[/dim]     [green]Ready[/green]
 
-[dim]─────────────────────────────────────────────────────[/dim]
+[dim]    Type /help for commands or just ask questions[/dim]
+[dim]═══════════════════════════════════════════════════[/dim]
 """
 
 

@@ -1,0 +1,323 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}Codebase Statistics{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_home.css') }}">
+<style>
+    .stats-overview {
+        padding: 2rem;
+    }
+
+    .overview-header {
+        margin-bottom: 2rem;
+    }
+
+    .overview-header h2 {
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .overview-header p {
+        color: var(--text-secondary);
+    }
+
+    .summary-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .summary-stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .summary-stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .projects-table-container {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .table-header h3 {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        margin: 0;
+    }
+
+    .projects-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .projects-table thead {
+        background: var(--bg-secondary);
+    }
+
+    .projects-table th {
+        padding: 1rem;
+        text-align: left;
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .projects-table td {
+        padding: 1rem;
+        color: var(--text-primary);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .projects-table tbody tr:hover {
+        background: var(--bg-secondary);
+    }
+
+    .project-name {
+        font-weight: 600;
+        color: var(--primary-color);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .project-name:hover {
+        text-decoration: underline;
+    }
+
+    .project-icon {
+        width: 32px;
+        height: 32px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.75rem;
+    }
+
+    .stat-number {
+        font-weight: 600;
+    }
+
+    .index-status {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .index-status.recent {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .index-status.old {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .index-status.very-old {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .analysis-breakdown {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .analysis-breakdown h3 {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .analysis-type-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .analysis-type-item:last-child {
+        border-bottom: none;
+    }
+
+    .analysis-type-name {
+        color: var(--text-primary);
+        text-transform: capitalize;
+    }
+
+    .analysis-type-count {
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-overview">
+    <!-- Header -->
+    <div class="overview-header">
+        <h2>Codebase Statistics</h2>
+        <p>Comprehensive metrics across all your projects</p>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="summary-stats">
+        <div class="summary-stat-card">
+            <div class="summary-stat-value">{{ total_projects }}</div>
+            <div class="summary-stat-label">Total Projects</div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-value">{{ "{:,}".format(total_files) }}</div>
+            <div class="summary-stat-label">Total Files</div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-value">{{ "{:,}".format(total_functions) }}</div>
+            <div class="summary-stat-label">Total Functions</div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-value">{{ "{:,}".format(total_classes) }}</div>
+            <div class="summary-stat-label">Total Classes</div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-value">{{ "{:,}".format(total_lines) }}</div>
+            <div class="summary-stat-label">Lines of Code</div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="summary-stat-value">{{ total_analyses }}</div>
+            <div class="summary-stat-label">Total Analyses</div>
+        </div>
+    </div>
+
+    <!-- Projects Table -->
+    {% if projects %}
+    <div class="projects-table-container">
+        <div class="table-header">
+            <h3>Projects Breakdown</h3>
+        </div>
+        <table class="projects-table">
+            <thead>
+                <tr>
+                    <th>Project</th>
+                    <th>Files</th>
+                    <th>Functions</th>
+                    <th>Classes</th>
+                    <th>Lines of Code</th>
+                    <th>Analyses</th>
+                    <th>Last Indexed</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('stats.project_detail', project_id=project.id) }}" class="project-name">
+                            <div class="project-icon">{{ project.name[0].upper() }}</div>
+                            <div>
+                                <div>{{ project.name }}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ project.path|truncate(40) }}</div>
+                            </div>
+                        </a>
+                    </td>
+                    <td class="stat-number">{{ "{:,}".format(project.file_count) }}</td>
+                    <td class="stat-number">{{ "{:,}".format(project.function_count) }}</td>
+                    <td class="stat-number">{{ "{:,}".format(project.class_count) }}</td>
+                    <td class="stat-number">{{ "{:,}".format(project.lines_of_code) }}</td>
+                    <td class="stat-number">{{ project.analysis_count }}</td>
+                    <td>
+                        {% if project.last_indexed %}
+                            {% if project.days_since_index == 0 %}
+                                <span class="index-status recent">Today</span>
+                            {% elif project.days_since_index <= 7 %}
+                                <span class="index-status recent">{{ project.days_since_index }}d ago</span>
+                            {% elif project.days_since_index <= 30 %}
+                                <span class="index-status old">{{ project.days_since_index }}d ago</span>
+                            {% else %}
+                                <span class="index-status very-old">{{ project.days_since_index }}d ago</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="index-status very-old">Never</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('stats.project_detail', project_id=project.id) }}" class="btn btn-sm btn-outline">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Analysis Breakdown -->
+    {% if analysis_by_type %}
+    <div class="analysis-breakdown">
+        <h3>Analysis Types Breakdown</h3>
+        {% for analysis_type, count in analysis_by_type.items() %}
+        <div class="analysis-type-item">
+            <span class="analysis-type-name">{{ analysis_type.replace('_', ' ') }}</span>
+            <span class="analysis-type-count">{{ count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon">📊</div>
+        <h3>No Projects Yet</h3>
+        <p>Create your first project to see statistics.</p>
+        <a href="{{ url_for('projects.new') }}" class="btn btn-primary">Create Project</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

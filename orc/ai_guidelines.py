@@ -29,8 +29,8 @@ def get_system_prompt(memory_context: str = None, tools_used_this_session: list 
    - DON'T call tools for information you already have
 
 3. **CHAT vs CODEBASE QUESTIONS**:
-   ❌ NO TOOLS for: "who are you", "what can you do", "are you", "do you have", "tell me about yourself"
-   ✅ TOOLS ONLY for: "analyze code", "find issues", "show me files", "what's in X", "find dead code"
+   NO TOOLS for: "who are you", "what can you do", "are you", "do you have", "tell me about yourself"
+   TOOLS ONLY for: "analyze code", "find issues", "show me files", "what's in X", "find dead code"
    
    SIMPLE RULE: If question is about YOU or general chat → Answer directly, NO TOOLS
                 If question is about THE CODEBASE → Use tools (if no cached data)
@@ -97,7 +97,7 @@ REMEMBER: This is recent data! Reference it instead of re-querying."""
         tools_str = ", ".join(tools_used_this_session[-5:])  # Last 5 tools
         base_prompt += f"""
 
-🔧 TOOLS ALREADY CALLED THIS SESSION:
+TOOLS ALREADY CALLED THIS SESSION:
 {tools_str}
 
 DON'T call these again unless you need FRESH data or different arguments!"""

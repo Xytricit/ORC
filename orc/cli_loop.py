@@ -55,6 +55,8 @@ from orc.banner import get_orc_banner, print_startup_info
 from orc.ai_client import get_ai_client, AIResponse, reset_ai_client
 from orc.ai_tools import TOOL_DEFINITIONS, ORCTools
 from orc.ai_guidelines import get_system_prompt
+from orc.subagents import SubAgent, AgentManager, interactive_agent_creation
+from orc.mode_manager import ModeManager
 
 # Reset client to pick up newly loaded env vars
 reset_ai_client()
@@ -65,6 +67,12 @@ console = Console()
 SLASH_COMMANDS = [
     ("/help", "Show all commands"),
     ("/status", "Show AI provider status"),
+    ("/init", "Initialize/update ORC.md with codebase info"),
+    ("/mode", "Switch between auto/chat/work mode"),
+    ("/create-agent", "Create a specialized subagent"),
+    ("/list-agents", "List all subagents"),
+    ("/agent", "Switch to a subagent"),
+    ("/delete-agent", "Delete a subagent"),
     ("/providers", "List available AI providers"),
     ("/provider", "Switch AI provider"),
     ("/models", "Show current model"),
@@ -261,7 +269,7 @@ def show_memory_bar(session: 'ORCChatSession'):
     # Determine color based on usage
     if msg_count >= 10:
         color = "yellow"
-        hint = "  [yellow]💡 Consider /clear for optimal performance[/yellow]"
+        hint = "  [yellow]Note: Consider /clear for optimal performance[/yellow]"
     elif msg_count >= 8:
         color = "yellow"
         hint = "  [dim]Approaching memory limit[/dim]"
@@ -698,6 +706,13 @@ class ORCChatSession:
         self.tools_used_this_session: List[str] = []
         self.permanent_memory: Optional[Dict[str, Any]] = None
         
+        # SubAgent system
+        self.agent_manager = AgentManager()
+        self.current_agent: Optional[SubAgent] = None
+        
+        # Mode system: auto, chat, work
+        self.mode_manager = ModeManager()
+        
         # Auto-create web project if authenticated
         self._auto_create_web_project()
         
@@ -827,6 +842,27 @@ class ORCChatSession:
     def chat(self, user_message: str) -> str:
         """Process a user message and return AI response"""
         
+        # Check for @ mentions first
+        mentioned_agents = self.agent_manager.parse_mentions(user_message)
+        if mentioned_agents and not self.current_agent:
+            # Delegate to mentioned agent
+            agent_name = mentioned_agents[0]
+            console.print(f"\n[cyan]→ Delegating to @{agent_name}...[/cyan]")
+            self.current_agent = self.agent_manager.get_agent(agent_name)
+            if self.current_agent:
+                self.current_agent.update_memory(f"Called via @mention", user_message[:100])
+        
+        # Check if mode should change (auto mode only)
+        if self.mode_manager.mode == "auto":
+            suggested_mode = self.mode_manager.get_mode_suggestion(user_message, self.tools_used_this_session)
+            if suggested_mode and suggested_mode != self.mode_manager.current_effective_mode:
+                # Ask user if they want to switch
+                mode_name = "chat mode (faster, no tools)" if suggested_mode == "chat" else "work mode (with tools)"
+                response = console.input(f"\n[yellow]Switch to {mode_name}?[/yellow] [dim](yes/no, or set /mode):[/dim] ").strip().lower()
+                if response in ["yes", "y", "yeah", "yep", "sure"]:
+                    self.mode_manager.update_effective_mode(suggested_mode)
+                    console.print(f"[green]Switched to {suggested_mode} mode[/green]\n")
+        
         # Reset stop flag
         set_stop_generation(False)
         
@@ -836,9 +872,14 @@ class ORCChatSession:
             "content": user_message
         })
         
-        # Build memory context for AI
+        # Build memory context for AI (use agent memory if active)
         memory_context = None
-        if self.permanent_memory:
+        if self.current_agent:
+            # Use agent's memory
+            agent_memory_file = self.current_agent.memory_file
+            if agent_memory_file.exists():
+                memory_context = f"Agent: {self.current_agent.name}\nRole: {self.current_agent.role}\n"
+        elif self.permanent_memory:
             memory_lines = []
             if self.permanent_memory.get("last_analysis_date"):
                 memory_lines.append(f"Last Analysis: {self.permanent_memory['last_analysis_date'].strftime('%Y-%m-%d %H:%M')}")
@@ -853,12 +894,20 @@ class ORCChatSession:
                 memory_context = "\n".join(memory_lines)
         
         # Build messages for AI with smart context-aware system prompt
-        messages = [
-            {"role": "system", "content": get_system_prompt(
-                memory_context=memory_context,
-                tools_used_this_session=self.tools_used_this_session
-            )}
-        ]
+        if self.current_agent:
+            # Use agent's custom system prompt
+            system_content = self.current_agent.get_system_prompt()
+            if memory_context:
+                system_content += f"\n\nContext:\n{memory_context}"
+            messages = [{"role": "system", "content": system_content}]
+        else:
+            # Use default ORC system prompt
+            messages = [
+                {"role": "system", "content": get_system_prompt(
+                    memory_context=memory_context,
+                    tools_used_this_session=self.tools_used_this_session
+                )}
+            ]
         for msg in self.conversation_history:
             if msg["role"] in ["user", "assistant"] and "tool_calls" not in msg:
                 messages.append({"role": msg["role"], "content": msg["content"]})
@@ -892,10 +941,14 @@ class ORCChatSession:
                 display_thread = threading.Thread(target=update_display, daemon=True)
                 display_thread.start()
                 
+                # Determine if tools should be available based on mode
+                use_tools = self.mode_manager.should_use_tools(user_message, self.tools_used_this_session)
+                tools_to_use = TOOL_DEFINITIONS if use_tools else None
+                
                 # Get initial AI response
                 response = self.ai_client.chat(
                     messages=messages,
-                    tools=TOOL_DEFINITIONS,
+                    tools=tools_to_use,
                     temperature=0.7,
                     max_tokens=4096
                 )
@@ -928,7 +981,8 @@ class ORCChatSession:
             # Limit to first tool only
             tools_to_run = response.tool_calls[:max_tools_per_iteration]
             
-            # Track tool usage
+            # Track tool usage and update mode manager
+            self.mode_manager.reset_message_count()
             for tc in tools_to_run:
                 tool_key = f"{tc['name']}"
                 tools_called.add(tool_key)
@@ -1041,6 +1095,10 @@ class ORCChatSession:
             "role": "assistant",
             "content": final_response
         })
+        
+        # Update mode manager message count if no tools were used
+        if not tools_called:
+            self.mode_manager.increment_message_count()
         
         # Update permanent memory if tools were used
         if tools_called and ORCPreferences.exists():
@@ -1353,6 +1411,38 @@ class ORCChatSession:
         elif cmd == "/history":
             self.show_history()
         
+        # Init command - create/update ORC.md
+        elif cmd == "/init":
+            self.initialize_orc_md(loc, languages)
+        
+        # Mode command
+        elif cmd == "/mode":
+            parts = command.split(maxsplit=1)
+            if len(parts) > 1:
+                self.switch_mode(parts[1])
+            else:
+                self.show_mode_status()
+        
+        # Agent commands
+        elif cmd == "/create-agent":
+            self.create_agent_interactive()
+        elif cmd == "/list-agents":
+            self.list_agents()
+        elif cmd == "/agent":
+            parts = command.split(maxsplit=1)
+            if len(parts) > 1:
+                self.switch_to_agent(parts[1])
+            else:
+                console.print("[yellow]Usage: /agent <name>[/yellow]")
+                console.print("[dim]Example: /agent security_auditor[/dim]")
+                console.print("[dim]Or use: /list-agents to see all agents[/dim]")
+        elif cmd == "/delete-agent":
+            parts = command.split(maxsplit=1)
+            if len(parts) > 1:
+                self.delete_agent(parts[1])
+            else:
+                console.print("[yellow]Usage: /delete-agent <name>[/yellow]")
+        
         elif cmd == "/reset":
             self.conversation_history.clear()
             reset_ai_client()
@@ -1383,6 +1473,144 @@ class ORCChatSession:
             console.print(f"[yellow]Unknown command: {cmd}[/yellow]")
             console.print("[dim]Type /help for available commands[/dim]")
     
+    def create_agent_interactive(self):
+        """Create a new subagent interactively"""
+        try:
+            config = interactive_agent_creation(console)
+            agent = self.agent_manager.create_agent(config["name"], config)
+            
+            console.print(f"\n[green]Agent created successfully: {agent.name}[/green]")
+            console.print(f"[dim]Memory file: {agent.memory_file.absolute()}[/dim]")
+            console.print(f"[dim]Config: {agent.config_file.absolute()}[/dim]")
+            console.print(f"\n[cyan]Switch:[/cyan] /agent {agent.name}")
+            console.print(f"[cyan]Mention:[/cyan] @{agent.name} your message here\n")
+            
+        except ValueError as e:
+            console.print(f"\n[red]Error:[/red] {str(e)}\n")
+        except Exception as e:
+            console.print(f"\n[red]Error creating agent:[/red] {str(e)}\n")
+    
+    def list_agents(self):
+        """List all available subagents"""
+        agents = self.agent_manager.list_agents()
+        
+        if not agents:
+            console.print("\n[yellow]No subagents created yet.[/yellow]")
+            console.print("[dim]Create one with: /create-agent[/dim]\n")
+            return
+        
+        console.print("\n[bold cyan]SubAgent Dev Team:[/bold cyan]\n")
+        
+        for agent in agents:
+            is_active = self.current_agent and self.current_agent.name == agent.name
+            
+            if is_active:
+                console.print(f"[bold green]▶ {agent.name}[/bold green] [green](active)[/green]")
+            else:
+                console.print(f"[cyan]  {agent.name}[/cyan]")
+            
+            console.print(f"    Role: {agent.role}")
+            console.print(f"    Expertise: {', '.join(agent.expertise) if agent.expertise else 'General'}")
+            console.print(f"    Personality: {agent.personality}")
+            console.print()
+        
+        console.print(f"[dim]Total: {len(agents)} agent(s)[/dim]")
+        console.print(f"[dim]Switch with: /agent <name> or mention with @<name>[/dim]\n")
+    
+    def switch_to_agent(self, name: str):
+        """Switch to a specific subagent"""
+        if name.lower() in ['main', 'orc', 'default', 'none']:
+            # Switch back to main ORC
+            if self.current_agent:
+                console.print(f"\n[cyan]← Switching from {self.current_agent.name} to Main ORC[/cyan]\n")
+                self.current_agent = None
+            else:
+                console.print("\n[yellow]Already using Main ORC[/yellow]\n")
+            return
+        
+        agent = self.agent_manager.switch_agent(name)
+        
+        if agent:
+            console.print(f"\n[green]Switched to agent: {agent.name}[/green]")
+            console.print(f"[dim]Role: {agent.role}[/dim]")
+            console.print(f"[dim]Expertise: {', '.join(agent.expertise) if agent.expertise else 'General'}[/dim]\n")
+            self.current_agent = agent
+            agent.update_memory("Agent activated", "Switched to this agent")
+        else:
+            console.print(f"\n[red]Error: Agent not found: {name}[/red]")
+            console.print("[dim]Use /list-agents to see available agents[/dim]\n")
+    
+    def delete_agent(self, name: str):
+        """Delete a subagent"""
+        if name.lower() in ['main', 'orc', 'default']:
+            console.print("\n[red]Cannot delete main ORC[/red]\n")
+            return
+        
+        agent = self.agent_manager.get_agent(name)
+        if not agent:
+            console.print(f"\n[red]Agent not found:[/red] {name}\n")
+            return
+        
+        console.print(f"\n[yellow]Delete agent: {name}?[/yellow]")
+        console.print(f"[dim]This will remove:[/dim]")
+        console.print(f"[dim]  - {agent.config_file}[/dim]")
+        console.print(f"[dim]  - {agent.memory_file}[/dim]")
+        
+        confirm = console.input("\n[red]Type 'yes' to confirm:[/red] ").strip().lower()
+        
+        if confirm == 'yes':
+            if self.agent_manager.delete_agent(name):
+                console.print(f"\n[green]Agent deleted: {name}[/green]\n")
+                if self.current_agent and self.current_agent.name == name:
+                    self.current_agent = None
+            else:
+                console.print(f"\n[red]Error: Failed to delete agent[/red]\n")
+        else:
+            console.print("\n[dim]Operation cancelled[/dim]\n")
+    
+    def initialize_orc_md(self, loc: int, languages: list):
+        """Initialize or update ORC.md with current codebase info"""
+        from datetime import datetime
+        
+        console.print("\n[cyan]Initializing ORC.md...[/cyan]\n")
+        
+        # Gather codebase info
+        project_info = {
+            "name": self.project_name,
+            "languages": languages,
+            "created": datetime.now().strftime("%Y-%m-%d"),
+        }
+        
+        # If exists, update; otherwise create
+        if ORCPreferences.exists():
+            console.print("[yellow]ORC.md already exists, updating...[/yellow]")
+            # Load existing preferences to preserve them
+            existing_prefs = ORCPreferences.load()
+            ORCPreferences.save(existing_prefs, project_info)
+        else:
+            console.print("[yellow]Creating ORC.md...[/yellow]")
+            ORCPreferences.save({}, project_info)
+        
+        # Update with fresh codebase analysis
+        analysis_data = {
+            "tools_used": [],
+            "total_files": None,
+            "total_loc": loc if loc > 0 else None,
+            "main_folders": [],
+            "structure_summary": f"Project with {len(languages)} language(s): {', '.join(languages)}",
+            "known_issues": []
+        }
+        
+        ORCMemory.write_permanent_memory(analysis_data)
+        
+        # Reload memory
+        self.permanent_memory = ORCMemory.read_permanent_memory()
+        self.preferences = ORCPreferences.load()
+        
+        console.print(f"\n[green]ORC.md initialized successfully[/green]")
+        console.print(f"[dim]Location: {ORCPreferences.ORC_MD_PATH.absolute()}[/dim]")
+        console.print(f"[dim]Context will be automatically tracked and updated[/dim]\n")
+    
     def manage_preferences(self, loc: int, languages: list):
         """Manage ORC.md preferences"""
         if ORCPreferences.exists():
@@ -1404,9 +1632,49 @@ class ORCChatSession:
                 }
                 ORCPreferences.save({}, project_info)
                 self.preferences = ORCPreferences.load()
-                console.print("\n[green]Created ORC.md![/green]\n")
+                console.print("\n[green]ORC.md created successfully[/green]\n")
             else:
-                console.print("[dim]No problem![/dim]\n")
+                console.print("[dim]Operation cancelled[/dim]\n")
+    
+    def show_mode_status(self):
+        """Show current mode status"""
+        mode_info = self.mode_manager.get_mode_description()
+        
+        console.print("\n[bold cyan]Current Mode[/bold cyan]")
+        console.print("[dim]" + "=" * 60 + "[/dim]\n")
+        console.print(f"  Mode: [yellow]{mode_info['mode']}[/yellow]")
+        console.print(f"  Description: {mode_info['description']}")
+        console.print(f"  Messages since tool use: {mode_info['messages_since_tools']}")
+        
+        console.print("\n[bold]Available Modes[/bold]")
+        console.print("  [yellow]auto[/yellow]   - AI automatically switches between chat and work")
+        console.print("  [yellow]chat[/yellow]   - Chat only (no tools, faster, cheaper)")
+        console.print("  [yellow]work[/yellow]   - Full tool access for codebase analysis")
+        
+        console.print("\n[dim]Usage: /mode <auto|chat|work>[/dim]\n")
+    
+    def switch_mode(self, new_mode: str):
+        """Switch to a different mode"""
+        new_mode = new_mode.lower().strip()
+        
+        if new_mode not in ["auto", "chat", "work"]:
+            console.print(f"\n[red]Invalid mode: {new_mode}[/red]")
+            console.print("[yellow]Valid modes: auto, chat, work[/yellow]\n")
+            return
+        
+        old_mode = self.mode_manager.mode
+        self.mode_manager.set_mode(new_mode)
+        
+        console.print(f"\n[green]Mode changed: {old_mode} -> {new_mode}[/green]")
+        
+        if new_mode == "auto":
+            console.print("[dim]ORC will automatically switch between chat and work modes based on context[/dim]")
+        elif new_mode == "chat":
+            console.print("[dim]Chat mode: Faster responses, no codebase tools[/dim]")
+        elif new_mode == "work":
+            console.print("[dim]Work mode: Full access to codebase analysis tools[/dim]")
+        
+        console.print()
     
     def show_slash_help(self):
         """Show slash command help"""

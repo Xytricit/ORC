@@ -1,0 +1,403 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}{{ project.name }} - Statistics{% endblock %}
+
+{% block dashboard_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_home.css') }}">
+<style>
+    .project-stats-page {
+        padding: 2rem;
+    }
+
+    .project-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .project-info h2 {
+        color: var(--text-primary);
+        font-size: 1.75rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .project-path {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-family: monospace;
+        background: var(--bg-secondary);
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        margin-top: 0.5rem;
+    }
+
+    .project-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .metric-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .health-score-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .health-score-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .health-score-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .health-score-value {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .health-score-value.excellent {
+        color: #28a745;
+    }
+
+    .health-score-value.good {
+        color: #5cb85c;
+    }
+
+    .health-score-value.fair {
+        color: #ffc107;
+    }
+
+    .health-score-value.poor {
+        color: #dc3545;
+    }
+
+    .health-score-bar {
+        height: 8px;
+        background: var(--bg-secondary);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .health-score-fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .health-score-fill.excellent {
+        background: #28a745;
+    }
+
+    .health-score-fill.good {
+        background: #5cb85c;
+    }
+
+    .health-score-fill.fair {
+        background: #ffc107;
+    }
+
+    .health-score-fill.poor {
+        background: #dc3545;
+    }
+
+    .analysis-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .section-title {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .analysis-types-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .analysis-type-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .analysis-type-count {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 0.25rem;
+    }
+
+    .analysis-type-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        text-transform: capitalize;
+    }
+
+    .analysis-history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .analysis-history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+    }
+
+    .analysis-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .analysis-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-color);
+        color: white;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.875rem;
+    }
+
+    .analysis-details {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .analysis-type {
+        color: var(--text-primary);
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    .analysis-date {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+    }
+
+    .analysis-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .analysis-status.completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .analysis-status.failed {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .timeline-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .timeline-chart {
+        height: 200px;
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+        padding: 1rem 0;
+    }
+
+    .timeline-bar {
+        flex: 1;
+        background: var(--primary-color);
+        border-radius: 4px 4px 0 0;
+        min-height: 4px;
+        position: relative;
+    }
+
+    .timeline-bar:hover {
+        opacity: 0.8;
+    }
+
+    .no-data {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="project-stats-page">
+    <!-- Project Header -->
+    <div class="project-header">
+        <div class="project-info">
+            <h2>{{ project.name }}</h2>
+            <div class="project-path">{{ project.path }}</div>
+        </div>
+        <div class="project-actions">
+            <a href="{{ url_for('projects.detail', project_id=project.id) }}" class="btn btn-outline">View Project</a>
+            <a href="{{ url_for('stats.overview') }}" class="btn btn-outline">Back to Stats</a>
+        </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-value">{{ "{:,}".format(project.file_count or 0) }}</div>
+            <div class="metric-label">Files</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ "{:,}".format(project.function_count or 0) }}</div>
+            <div class="metric-label">Functions</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ "{:,}".format(project.class_count or 0) }}</div>
+            <div class="metric-label">Classes</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ "{:,}".format(project.lines_of_code or 0) }}</div>
+            <div class="metric-label">Lines of Code</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">
+                {% if project.file_count and project.file_count > 0 %}
+                    {{ "%.1f"|format(project.lines_of_code / project.file_count) }}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+            <div class="metric-label">Avg Lines/File</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-value">{{ total_analyses }}</div>
+            <div class="metric-label">Total Analyses</div>
+        </div>
+    </div>
+
+    <!-- Health Score -->
+    <div class="health-score-card">
+        <div class="health-score-header">
+            <span class="health-score-title">Project Health Score</span>
+            <span class="health-score-value {% if health_score >= 80 %}excellent{% elif health_score >= 60 %}good{% elif health_score >= 40 %}fair{% else %}poor{% endif %}">
+                {{ health_score }}%
+            </span>
+        </div>
+        <div class="health-score-bar">
+            <div class="health-score-fill {% if health_score >= 80 %}excellent{% elif health_score >= 60 %}good{% elif health_score >= 40 %}fair{% else %}poor{% endif %}" 
+                 style="width: {{ health_score }}%"></div>
+        </div>
+        <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.875rem;">
+            Based on code organization, update frequency, and analysis coverage.
+        </p>
+    </div>
+
+    <!-- Analysis Types Breakdown -->
+    {% if analysis_by_type %}
+    <div class="analysis-section">
+        <h3 class="section-title">Analysis Types</h3>
+        <div class="analysis-types-grid">
+            {% for analysis_type, count in analysis_by_type.items() %}
+            <div class="analysis-type-card">
+                <div class="analysis-type-count">{{ count }}</div>
+                <div class="analysis-type-label">{{ analysis_type.replace('_', ' ') }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Analysis Timeline -->
+    {% if timeline_data %}
+    <div class="timeline-section">
+        <h3 class="section-title">Analysis Activity (Last 30 Days)</h3>
+        <div class="timeline-chart">
+            {% for date, count in timeline_data.items() %}
+            <div class="timeline-bar" style="height: {{ (count / timeline_data.values()|max * 100) if timeline_data.values()|max > 0 else 10 }}%" 
+                 title="{{ date }}: {{ count }} analyses"></div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Analyses -->
+    <div class="analysis-section">
+        <h3 class="section-title">Recent Analyses</h3>
+        {% if analyses %}
+        <div class="analysis-history-list">
+            {% for analysis in analyses %}
+            <div class="analysis-history-item">
+                <div class="analysis-info">
+                    <div class="analysis-icon">{{ analysis.analysis_type[:2].upper() }}</div>
+                    <div class="analysis-details">
+                        <span class="analysis-type">{{ analysis.analysis_type.replace('_', ' ') }}</span>
+                        <span class="analysis-date">{{ analysis.created_at.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                    </div>
+                </div>
+                <span class="analysis-status {{ analysis.status }}">{{ analysis.status }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="no-data">No analyses yet for this project.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

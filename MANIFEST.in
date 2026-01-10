@@ -4,10 +4,13 @@ include LICENSE
 include CHANGELOG.md
 include SECURITY.md
 include CONTRIBUTING.md
-include ORC.md
+include CODE_OF_CONDUCT.md
+include .env.example
 
 # Include requirements files
 include requirements.txt
+include requirements-dev.txt
+include requirements-web.txt
 recursive-include orc *.txt
 
 # Include web templates
@@ -18,7 +21,6 @@ recursive-include orc/web/static *.css
 recursive-include orc/web/static *.js
 recursive-include orc/web/static *.png
 recursive-include orc/web/static *.svg
-recursive-include orc/web/static *.jpg
 recursive-include orc/web/static *.ico
 
 # Include configuration files
@@ -32,10 +34,6 @@ recursive-include orc/storage/migrations *.sql
 
 # Include documentation
 recursive-include docs *.md
-
-# Exclude web app (deployed separately)
-recursive-exclude orc/web *
-prune orc/web
 
 # Exclude unnecessary files
 global-exclude __pycache__

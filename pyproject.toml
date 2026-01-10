@@ -4,11 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "orc-cli"
-version = "2.0.0"
+version = "1.0.0"
 description = "ORC - Optimization & Refactoring Catalyst - AI-Powered Codebase Intelligence"
 readme = "README.md"
 requires-python = ">=3.8"
-license = "MIT"
 authors = [
     {name = "ORC Team", email = "dev@orc-project.dev"}
 ]
@@ -111,8 +110,11 @@ Changelog = "https://github.com/xytricit/orc/blob/main/CHANGELOG.md"
 orc = "orc.cli_main:main"
 
 [tool.setuptools]
-packages = ["orc"]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["orc*"]
+exclude = ["tests*", "test_project*", "examples*", "docs*"]
 
 [tool.setuptools.package-data]
 orc = [

@@ -3,7 +3,7 @@ import os
 
 setup(
     name="orc-cli",
-    version="2.0.0",
+    version="1.0.0",
     packages=find_packages(include=['orc', 'orc.*']),
     py_modules=['run_orc'],  # Explicitly include the run_orc module
     entry_points={

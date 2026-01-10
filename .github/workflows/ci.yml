@@ -11,46 +11,55 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install -r requirements.txt -r requirements-dev.txt
         pip install -e .
-        pip install -r orc/requirements.txt
-        pip install pytest pytest-cov
     
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
-        cd orc
-        pytest tests/ -v --cov=. --cov-report=xml
+        pytest orc/tests/ -v --cov=orc --cov-report=xml --cov-report=term-missing
     
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
       with:
-        file: ./orc/coverage.xml
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
 
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.11'
     
     - name: Install linting tools
       run: |
-        pip install flake8 black isort
+        pip install flake8 black isort mypy bandit
     
     - name: Run flake8
       run: |
@@ -58,22 +67,87 @@ jobs:
     
     - name: Check code formatting with black
       run: |
-        black --check orc
+        black --check orc --line-length=100
     
     - name: Check import sorting with isort
       run: |
-        isort --check-only orc
+        isort --check-only orc --profile=black
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        pip install bandit safety
+    
+    - name: Run Bandit security check
+      run: |
+        bandit -r orc -ll -f json -o bandit-report.json || true
+        bandit -r orc -ll
+    
+    - name: Run Safety check
+      run: |
+        pip install -r requirements.txt
+        safety check --json || true
+        safety check
+    
+    - name: Upload Bandit results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: bandit-report
+        path: bandit-report.json
+
+  check-files:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for test files in production code
+      run: |
+        if find orc -maxdepth 1 -name 'test_*.py' -o -name '*_test.py' -o -name 'debug_*.py' -o -name 'temp_*.py' | grep .; then
+          echo "❌ Test/debug files found in production code!"
+          exit 1
+        else
+          echo "✅ No test/debug files in production code"
+        fi
+    
+    - name: Check for .pyc files
+      run: |
+        if find . -name '*.pyc' | grep .; then
+          echo "⚠️ Warning: .pyc files found in repository"
+          find . -name '*.pyc'
+        else
+          echo "✅ No .pyc files in repository"
+        fi
 
   docker:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, lint, security]
     if: github.ref == 'refs/heads/main'
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
     
     - name: Build Docker image
-      run: docker build -t orc:latest -f orc/Dockerfile .
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: orc/Dockerfile
+        push: false
+        tags: orc:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     
     - name: Test Docker image
       run: docker run orc:latest orc --help

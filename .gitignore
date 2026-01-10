@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
+*.pyo
+*.pyd
 
 # C extensions
 *.so
@@ -50,6 +53,7 @@ Thumbs.db
 # Local env files
 .env
 .env.*
+!.env.example
 
 # One-off project artifacts
 orc.egg-info/

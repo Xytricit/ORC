@@ -1,0 +1,28 @@
+# ORC - Optimization & Refactoring Catalyst
+# Main Requirements File
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+click>=8.0.0          # CLI framework
+rich>=10.0.0          # Terminal formatting
+networkx>=2.6.0       # Graph algorithms
+pyyaml>=5.4.0         # YAML parsing
+httpx>=0.24.0         # HTTP client (for Ollama)
+python-dotenv>=1.0.0  # Load .env files
+dataclasses-json>=0.5.0  # JSON serialization
+prompt_toolkit>=3.0.0 # Better input with autocomplete
+
+# AI Providers - install only what you need!
+# Users bring their own API keys
+groq>=0.5.0           # Groq (free tier)
+openai>=1.0.0         # OpenAI / DeepSeek
+anthropic>=0.18.0     # Anthropic Claude
+google-generativeai>=0.4.0  # Google Gemini
+
+# Web Framework (optional - for web dashboard)
+# Install with: pip install -r requirements.txt -r requirements-web.txt
+# Or use: pip install orc-cli[web]
+
+# Testing (optional - for development)
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+# Or use: pip install orc-cli[dev]

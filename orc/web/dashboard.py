@@ -57,20 +57,35 @@ def home():
     
     # Calculate dead code found (example - would come from actual analyses)
     dead_code_found = 0
-    dead_code_analyses = AnalysisHistory.query.filter_by(
-        user_id=current_user.id,
-        analysis_type='dead_code'
-    ).all()
-    for analysis in dead_code_analyses:
-        if analysis.results and isinstance(analysis.results, dict):
-            dead_code_found += len(analysis.results.get('safe_to_delete', []))
+    try:
+        dead_code_analyses = AnalysisHistory.query.filter_by(
+            user_id=current_user.id,
+            analysis_type='dead_code'
+        ).all()
+        for analysis in dead_code_analyses:
+            if analysis.results and isinstance(analysis.results, dict):
+                safe_list = analysis.results.get('safe_to_delete', [])
+                if safe_list and isinstance(safe_list, list):
+                    dead_code_found += len(safe_list)
+    except Exception:
+        dead_code_found = 0
+    
+    # Safely convert counts to integers
+    def safe_int(value, default=0):
+        """Safely convert value to int, handling None and other types"""
+        try:
+            if value is None:
+                return default
+            return int(value)
+        except (ValueError, TypeError):
+            return default
     
     return render_template(
         'dashboard/home.html',
-        project_count=project_count,
-        analysis_count=analysis_count,
-        recent_analysis_count=recent_analysis_count,
-        api_configs_count=api_configs_count,
-        dead_code_found=dead_code_found,
-        recent_activities=recent_activities
+        project_count=safe_int(project_count),
+        analysis_count=safe_int(analysis_count),
+        recent_analysis_count=safe_int(recent_analysis_count),
+        api_configs_count=safe_int(api_configs_count),
+        dead_code_found=safe_int(dead_code_found),
+        recent_activities=recent_activities or []
     )
