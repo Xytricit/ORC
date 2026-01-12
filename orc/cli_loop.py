@@ -38,6 +38,23 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.box import ROUNDED, HEAVY, DOUBLE
 from rich.table import Table
 from rich.markdown import Markdown
+
+# Import beautiful UI components
+try:
+    from orc.ui_components import (
+        show_logo, show_tagline, show_status_bar, show_help_hint,
+        show_section_header, show_section_footer, show_thinking_step,
+        show_tool_execution, show_ai_plan, show_task_list,
+        show_commands_table, show_error, show_success
+    )
+except ImportError:
+    # Fallback if ui_components not available
+    def show_section_header(title, iteration=None):
+        console.print(f"  [bold cyan]┌─ {title}[/bold cyan]")
+    def show_section_footer(status="Complete"):
+        console.print(f"  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]{status}[/green]")
+    def show_ai_plan(plan):
+        console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]Plan: {plan}[/dim]")
 import threading
 import signal
 
@@ -226,51 +243,20 @@ def show_info_panel(title: str, content: str, style: str = "cyan"):
     console.print(panel)
 
 
+# Tool display function now in ui_components.py
+# Keeping this for backwards compatibility
 def show_tool_log(tool_name: str, status: str = "running", args: dict = None):
-    """Show attractive tool execution log with better formatting"""
-    # Format tool name nicely
-    tool_display = tool_name.replace("_", " ").title()
-    
-    if status == "running":
-        # Show what the tool is doing
-        if args:
-            # Show key arguments
-            key_args = []
-            if 'pattern' in args:
-                key_args.append(f"'{args['pattern']}'")
-            elif 'file_path' in args:
-                key_args.append(f"{Path(args['file_path']).name}")
-            elif 'limit' in args:
-                key_args.append(f"limit={args['limit']}")
-            
-            arg_display = f" ({', '.join(key_args)})" if key_args else ""
-            console.print(f"  [dim]│[/dim]  [cyan]⚙[/cyan] [cyan]{tool_display}[/cyan][dim]{arg_display}[/dim]")
-        else:
-            console.print(f"  [dim]│[/dim]  [cyan]⚙[/cyan] [cyan]{tool_display}[/cyan]")
-    elif status == "done":
-        console.print(f"  [dim]│[/dim]  [green]✓[/green] [green]{tool_display}[/green] [dim]complete[/dim]")
-    elif status == "error":
-        console.print(f"  [dim]│[/dim]  [red]✗[/red] [red]{tool_display}[/red] [dim]failed[/dim]")
+    """Show attractive tool execution log - delegates to ui_components"""
+    from orc.ui_components import show_tool_execution
+    show_tool_execution(tool_name, status, args)
 
 
+# Task list display function now in ui_components.py  
+# Keeping this for backwards compatibility
 def show_ai_todo(tasks: List[Dict]):
-    """Show AI's current task list with professional formatting"""
-    if not tasks:
-        return
-    
-    console.print()
-    console.print("  [bold cyan]┌─ Analysis Plan[/bold cyan]")
-    for idx, task in enumerate(tasks, 1):
-        status = task.get("status", "pending")
-        name = task.get("name", "Task")
-        
-        if status == "done":
-            console.print(f"  [dim]│[/dim]  [green]✓[/green] [strike dim]{idx}. {name}[/strike dim]")
-        elif status == "running":
-            console.print(f"  [dim]│[/dim]  [cyan]▶[/cyan] [bold white]{idx}. {name}[/bold white]")
-        else:
-            console.print(f"  [dim]│[/dim]  [dim]◯[/dim] [dim]{idx}. {name}[/dim]")
-    console.print("  [bold cyan]└─[/bold cyan]")
+    """Show AI's current task list - delegates to ui_components"""
+    from orc.ui_components import show_task_list
+    show_task_list(tasks)
 
 
 def show_memory_bar(session: 'ORCChatSession'):
@@ -964,7 +950,7 @@ class ORCChatSession:
         
         # Show thinking indicator with rotating messages
         console.print()  # Spacing
-        console.print("  [bold cyan]┌─ AI Thinking[/bold cyan]")
+        show_section_header("AI Thinking")
         
         # Use Rich Live display for animated loading
         from rich.live import Live
@@ -1018,11 +1004,11 @@ class ORCChatSession:
                 tool_summary = f"{', '.join(tool_names)}, +{tool_count-3} more"
             else:
                 tool_summary = ', '.join(tool_names)
-            console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]Plan: Use {tool_summary}[/dim]")
+            show_ai_plan(f"Use {tool_summary}")
         else:
-            console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]Plan: Respond directly[/dim]")
+            show_ai_plan("Respond directly")
         
-        console.print("  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]Ready[/green]")
+        show_section_footer("Ready")
         
         # Handle tool calls in a loop
         max_iterations = 30  # Allow complex multi-step analysis
