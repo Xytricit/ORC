@@ -6,8 +6,8 @@ ORC uses this to provide better, more personalized assistance.
 ## Project Info
 
 - Name: ORC
-- Languages: HTML, Python, JavaScript, TypeScript, CSS
-- Created: 2026-01-12
+- Languages: Python, JavaScript, HTML, CSS
+- Created: 2026-01-09
 
 ## Preferences
 
@@ -21,8 +21,8 @@ ORC uses this to provide better, more personalized assistance.
 *This section is automatically maintained by ORC AI to remember your codebase.*
 
 ### Last Analysis
-- Date: 2026-01-12T13:41:24.619729
-- Total Files: 1
+- Date: 2026-01-10T10:07:28.493909
+- Total Files: None
 - Total LOC: None
 - Main Folders: 
 
@@ -30,11 +30,12 @@ ORC uses this to provide better, more personalized assistance.
 
 
 ### Known Issues
-
+- 1 potentially unused functions
 
 ### Tools Recently Used
-- get_codebase_stats
-- get_codebase_map
+- get_dead_code
+- get_file_content
+- cleanup_imports
 ## Project Notes
 
 Add any notes about your project here that might help ORC understand it better:

@@ -1084,13 +1084,19 @@ def hotspots(ctx, limit):
 @click.option('--port', default=5000, help='Port for web server')
 def serve(host, port):
     """Start the web interface"""
-    try:
-        from orc.web.app import app
-        console.print(f"[bold blue]Starting web server at http://{host}:{port}[/bold blue]")
-        app.run(host=host, port=port, debug=True)
-    except ImportError as e:
-        console.print(f"[red]Error starting web server:[/red] {e}")
-        console.print("[yellow]Make sure the web dependencies are installed.[/yellow]")
+    console.print("[yellow]Web interface has been archived.[/yellow]")
+    console.print("[blue]The web app is available in archive/orc_web_flask/[/blue]")
+    console.print("[blue]To run it: cd archive/orc_web_flask && python app_new.py[/blue]")
+    return
+    
+    # Note: Web module has been archived
+    # try:
+    #     from orc.web.app import app
+    #     console.print(f"[bold blue]Starting web server at http://{host}:{port}[/bold blue]")
+    #     app.run(host=host, port=port, debug=True)
+    # except ImportError as e:
+    #     console.print(f"[red]Error starting web server:[/red] {e}")
+    #     console.print("[yellow]Make sure the web dependencies are installed.[/yellow]")
 
 
 

@@ -49,11 +49,33 @@ class DeadCodeAnalyzer:
         all_called_functions = set()
         unused_functions = []
         
-        # Collect all called functions
+        # Collect all called functions (from within other functions)
         for module_path, module in modules.items():
             for func_name, func_info in module.functions.items():
                 for called_func in func_info.calls:
                     all_called_functions.add(called_func)
+        
+        # Also check for module-level calls (like in if __name__ == "__main__")
+        # by parsing each module to find calls outside of function definitions
+        import ast
+        from pathlib import Path
+        for module_path, module in modules.items():
+            try:
+                content = Path(module_path).read_text(encoding='utf-8')
+                tree = ast.parse(content)
+                
+                # Extract module-level calls (outside function definitions)
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Call):
+                        # Only count if it's a direct module-level call, not inside a function
+                        if self._is_module_level_call(node, tree):
+                            if isinstance(node.func, ast.Name):
+                                all_called_functions.add(node.func.id)
+                            elif isinstance(node.func, ast.Attribute):
+                                all_called_functions.add(node.func.attr)
+            except:
+                # If we can't parse, skip this module
+                pass
         
         # Find functions that are not called by anyone
         for module_path, module in modules.items():
@@ -145,6 +167,20 @@ class DeadCodeAnalyzer:
                 return path
         return None
 
+    def _is_module_level_call(self, call_node: 'ast.Call', tree: 'ast.Module') -> bool:
+        """Check if a call is at module level (not inside a function)"""
+        import ast
+        
+        # Walk through all function definitions to check if this call is inside one
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                # Check if call_node is within this function
+                for child in ast.walk(node):
+                    if child is call_node:
+                        return False  # It's inside a function
+        
+        return True  # It's at module level
+    
     def _calculate_confidence_scores(self, unused_functions: List[Dict], 
                                     unused_exports: List[Dict]) -> Dict[str, float]:
         """Calculate confidence scores for dead code findings"""

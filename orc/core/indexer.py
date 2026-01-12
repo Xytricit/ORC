@@ -345,15 +345,24 @@ class MultiLanguageIndexer:
             '.html': HTMLCSSParser(),
             '.htm': HTMLCSSParser(),
             '.css': HTMLCSSParser(),
+            '.scss': SCSSParser(),
+            '.sass': SASSParser(),
+            '.less': LESSParser(),
             '.json': JSONParser(),
             '.md': MarkdownParser(),
             '.markdown': MarkdownParser(),
             '.yml': YAMLParser(),
             '.yaml': YAMLParser(),
-            '.scss': SCSSParser(),
-            '.sass': SASSParser(),
-            '.less': LESSParser(),
         }
+        
+        # Framework-aware parsers (detect based on content/structure)
+        self.framework_parsers = {
+            'django': DjangoParser(),
+            'fastapi': FastAPIParser(),
+        }
+        
+        # Tailwind parser for CSS files with Tailwind utilities
+        self.tailwind_parser = TailwindParser()
         # Shared cache for all parsed files across languages.
         self._cache = Cache(config.cache_path)
 
@@ -396,9 +405,24 @@ class MultiLanguageIndexer:
                 if not parser:
                     return None
                 try:
-                    return parser.parse_file(path)
+                    result = parser.parse_file(path)
+                    
+                    # Apply framework-specific parsers for Python files
+                    if ext == '.py':
+                        result = self._apply_framework_parser(path, result)
+                    
+                    # Apply Tailwind parser for CSS files
+                    elif ext == '.css':
+                        result = self._apply_tailwind_parser(path, result)
+                    
+                    return result
+                except UnicodeDecodeError:
+                    # Skip files with encoding issues
+                    print(f"Skipping {path.name}: Invalid encoding")
+                    return None
                 except Exception as e:  # pragma: no cover - defensive
-                    print(f"Error parsing {path}: {e}")
+                    # Log error but continue indexing other files
+                    print(f"Skipping {path.name}: {str(e)[:100]}")
                     return None
 
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -501,3 +525,57 @@ class MultiLanguageIndexer:
         # Exports - last write wins (typically harmless)
         for sym, meta in (result.get('exports') or {}).items():
             index['exports'][sym] = meta
+
+    def _apply_framework_parser(self, path: Path, base_result: dict) -> dict:
+        """Apply Django/FastAPI parser if framework detected."""
+        try:
+            content = path.read_text(encoding='utf-8')
+            
+            # Detect Django
+            if any(pattern in content for pattern in [
+                'from django', 'import django', 'models.Model', 
+                'django.conf', 'django.db'
+            ]):
+                django_result = self.framework_parsers['django'].parse_file(path)
+                # Merge Django-specific data into base result
+                base_result.update({
+                    k: v for k, v in django_result.items() 
+                    if k.startswith('django_')
+                })
+            
+            # Detect FastAPI
+            elif any(pattern in content for pattern in [
+                'from fastapi', 'import fastapi', 'FastAPI()',
+                '@app.get', '@app.post', 'APIRouter'
+            ]):
+                fastapi_result = self.framework_parsers['fastapi'].parse_file(path)
+                # Merge FastAPI-specific data into base result
+                base_result.update({
+                    k: v for k, v in fastapi_result.items() 
+                    if k.startswith('fastapi_')
+                })
+        except Exception as e:
+            pass  # Silently skip framework detection errors
+        
+        return base_result
+    
+    def _apply_tailwind_parser(self, path: Path, base_result: dict) -> dict:
+        """Apply Tailwind parser if Tailwind utilities detected."""
+        try:
+            content = path.read_text(encoding='utf-8')
+            
+            # Detect Tailwind patterns (utility classes like bg-, text-, flex-, etc.)
+            if any(pattern in content for pattern in [
+                'bg-', 'text-', 'flex-', 'grid-', 'p-', 'm-',
+                '@apply', '@layer', 'tailwind'
+            ]):
+                tailwind_result = self.tailwind_parser.parse_file(path)
+                # Merge Tailwind data into base result
+                base_result.update({
+                    k: v for k, v in tailwind_result.items() 
+                    if k.startswith('tailwind_')
+                })
+        except Exception as e:
+            pass  # Silently skip Tailwind detection errors
+        
+        return base_result

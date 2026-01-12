@@ -85,3 +85,11 @@ node_modules/
 
 # Executable files
 *.exe
+
+# Database files
+*.db
+instance/
+
+# Test artifacts
+test_output.txt
+tmp_rovodev_*

@@ -226,40 +226,58 @@ def show_info_panel(title: str, content: str, style: str = "cyan"):
     console.print(panel)
 
 
-def show_tool_log(tool_name: str, status: str = "running"):
-    """Show attractive tool execution log"""
+def show_tool_log(tool_name: str, status: str = "running", args: dict = None):
+    """Show attractive tool execution log with better formatting"""
+    # Format tool name nicely
+    tool_display = tool_name.replace("_", " ").title()
+    
     if status == "running":
-        console.print(f"  [dim]│[/dim]  [cyan]>[/cyan] [dim]{tool_name}[/dim]")
+        # Show what the tool is doing
+        if args:
+            # Show key arguments
+            key_args = []
+            if 'pattern' in args:
+                key_args.append(f"'{args['pattern']}'")
+            elif 'file_path' in args:
+                key_args.append(f"{Path(args['file_path']).name}")
+            elif 'limit' in args:
+                key_args.append(f"limit={args['limit']}")
+            
+            arg_display = f" ({', '.join(key_args)})" if key_args else ""
+            console.print(f"  [dim]│[/dim]  [cyan]⚙[/cyan] [cyan]{tool_display}[/cyan][dim]{arg_display}[/dim]")
+        else:
+            console.print(f"  [dim]│[/dim]  [cyan]⚙[/cyan] [cyan]{tool_display}[/cyan]")
     elif status == "done":
-        console.print(f"  [dim]│[/dim]  [green]✓[/green] [dim]{tool_name}[/dim]")
+        console.print(f"  [dim]│[/dim]  [green]✓[/green] [green]{tool_display}[/green] [dim]complete[/dim]")
     elif status == "error":
-        console.print(f"  [dim]│[/dim]  [red]✗[/red] [dim]{tool_name}[/dim]")
+        console.print(f"  [dim]│[/dim]  [red]✗[/red] [red]{tool_display}[/red] [dim]failed[/dim]")
 
 
 def show_ai_todo(tasks: List[Dict]):
-    """Show AI's current task list"""
+    """Show AI's current task list with professional formatting"""
     if not tasks:
         return
     
     console.print()
-    console.print("  [dim]┌─ Tasks[/dim]")
-    for task in tasks:
+    console.print("  [bold cyan]┌─ Analysis Plan[/bold cyan]")
+    for idx, task in enumerate(tasks, 1):
         status = task.get("status", "pending")
         name = task.get("name", "Task")
+        
         if status == "done":
-            console.print(f"  [dim]│[/dim]  [green]✓[/green] [strike dim]{name}[/strike dim]")
+            console.print(f"  [dim]│[/dim]  [green]✓[/green] [strike dim]{idx}. {name}[/strike dim]")
         elif status == "running":
-            console.print(f"  [dim]│[/dim]  [cyan]>[/cyan] [white]{name}[/white]")
+            console.print(f"  [dim]│[/dim]  [cyan]▶[/cyan] [bold white]{idx}. {name}[/bold white]")
         else:
-            console.print(f"  [dim]│[/dim]  [dim]○[/dim] [dim]{name}[/dim]")
-    console.print("  [dim]└─[/dim]")
+            console.print(f"  [dim]│[/dim]  [dim]◯[/dim] [dim]{idx}. {name}[/dim]")
+    console.print("  [bold cyan]└─[/bold cyan]")
 
 
 def show_memory_bar(session: 'ORCChatSession'):
     """Show memory usage bar below AI responses"""
     # Count conversation pairs (user + assistant)
     msg_count = len([m for m in session.conversation_history if m["role"] == "user"])
-    max_messages = 10
+    max_messages = 50  # Much better for real work sessions
     
     # Calculate percentage and bar
     percentage = min(100, int((msg_count / max_messages) * 100))
@@ -816,20 +834,29 @@ class ORCChatSession:
         """Execute tool calls and return results with nice logging"""
         results = []
         
-        for tool_call in tool_calls:
+        for idx, tool_call in enumerate(tool_calls, 1):
             tool_name = tool_call["name"]
             arguments = tool_call.get("arguments", {})
             
-            # Show tool being executed
-            show_tool_log(tool_name, "running")
+            # Show tool being executed with arguments
+            show_tool_log(tool_name, "running", arguments)
             
             # Execute the tool with error handling
             try:
                 result = self.tools.execute_tool(tool_name, arguments)
                 show_tool_log(tool_name, "done")
+                
+                # Show summary of result
+                if isinstance(result, dict) and not result.get('error'):
+                    summary = self._summarize_tool_result(tool_name, result)
+                    if summary:
+                        console.print(f"  [dim]│[/dim]    [dim]{summary}[/dim]")
+                        
             except Exception as e:
                 result = {"error": f"Tool failed: {str(e)}"}
                 show_tool_log(tool_name, "error")
+                console.print(f"  [dim]│[/dim]    [red]{str(e)[:80]}[/red]")
+                # Continue instead of breaking
             
             results.append({
                 "tool_call_id": tool_call.get("id", ""),
@@ -838,6 +865,29 @@ class ORCChatSession:
             })
         
         return results
+    
+    def _summarize_tool_result(self, tool_name: str, result: dict) -> str:
+        """Create a one-line summary of tool results"""
+        try:
+            if tool_name == "get_codebase_stats":
+                return f"Found {result.get('total_files', 0)} files, {result.get('total_functions', 0)} functions"
+            elif tool_name == "query_functions":
+                funcs = result.get('functions', [])
+                return f"Found {len(funcs)} matching functions"
+            elif tool_name == "get_dead_code":
+                summary = result.get('summary', {})
+                unused = summary.get('total_potentially_unused', 0)
+                return f"Found {unused} potentially unused functions"
+            elif tool_name == "get_complexity_report":
+                summary = result.get('summary', {})
+                critical = summary.get('critical_count', 0)
+                return f"Found {critical} critical complexity issues"
+            elif tool_name == "get_hotspots":
+                hotspots = result.get('complexity_hotspots', [])
+                return f"Found {len(hotspots)} complexity hotspots"
+        except:
+            pass
+        return None
     
     def chat(self, user_message: str) -> str:
         """Process a user message and return AI response"""
@@ -914,7 +964,7 @@ class ORCChatSession:
         
         # Show thinking indicator with rotating messages
         console.print()  # Spacing
-        console.print("  [dim]┌─ Thinking[/dim]")
+        console.print("  [bold cyan]┌─ AI Thinking[/bold cyan]")
         
         # Use Rich Live display for animated loading
         from rich.live import Live
@@ -960,11 +1010,23 @@ class ORCChatSession:
             self._handle_error_response(response.content)
             return ""
         
-        console.print("  [dim]└─[/dim] [green]✓[/green] [dim]Ready[/dim]")
+        # Show what AI decided to do
+        if response.tool_calls:
+            tool_count = len(response.tool_calls)
+            tool_names = [tc['name'].replace('_', ' ').title() for tc in response.tool_calls[:3]]
+            if tool_count > 3:
+                tool_summary = f"{', '.join(tool_names)}, +{tool_count-3} more"
+            else:
+                tool_summary = ', '.join(tool_names)
+            console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]Plan: Use {tool_summary}[/dim]")
+        else:
+            console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]Plan: Respond directly[/dim]")
+        
+        console.print("  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]Ready[/green]")
         
         # Handle tool calls in a loop
-        max_iterations = 5  # Increased to allow more tool calls before requiring response
-        max_tools_per_iteration = 1
+        max_iterations = 30  # Allow complex multi-step analysis
+        max_tools_per_iteration = 5  # Allow parallel tool execution for speed
         iteration = 0
         tool_messages = []
         tools_called = set()  # Track which tools have been called to avoid duplicates
@@ -992,7 +1054,8 @@ class ORCChatSession:
             
             # Execute tool calls with nice logging
             console.print()
-            console.print("  [dim]┌─ Running Tools[/dim]")
+            tool_count = len(tools_to_run)
+            console.print(f"  [bold cyan]┌─ Running {tool_count} Tool{'s' if tool_count > 1 else ''}[/bold cyan]")
             
             try:
                 tool_results = self.execute_tool_calls(tools_to_run)
@@ -1001,7 +1064,7 @@ class ORCChatSession:
                 show_error_panel("Tool Error", str(e))
                 break
             
-            console.print("  [dim]└─[/dim] [green]✓[/green] [dim]Complete[/dim]")
+            console.print("  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]Complete[/green]")
             
             # Build tool call message for API
             tool_calls_for_api = [
@@ -1045,7 +1108,7 @@ class ORCChatSession:
             
             # Get next response
             console.print()
-            console.print("  [dim]┌─ Processing[/dim]")
+            console.print(f"  [bold cyan]┌─ Processing Results (Iteration {iteration}/{max_iterations})[/bold cyan]")
             
             loader = RotatingLoader(interval=2.0)
             loader.start()
@@ -1081,7 +1144,7 @@ class ORCChatSession:
                 self._handle_error_response(response.content)
                 return ""
             
-            console.print("  [dim]└─[/dim] [green]✓[/green] [dim]Ready[/dim]")
+            console.print("  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]Ready[/green]")
         
         # Get final response content
         # If no content but we did process tools, it might be the AI didn't generate a final response
@@ -2089,8 +2152,5 @@ def run_cli_session():
 
 # Allow running directly
 if __name__ == "__main__":
-    # Check authentication before showing UI
-    from orc.cli_auth import is_authenticated, require_auth
-    if not is_authenticated():
-        require_auth()
+    # No auth required - run directly
     run_cli_session()

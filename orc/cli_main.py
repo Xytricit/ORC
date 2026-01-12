@@ -29,11 +29,7 @@ def main(ctx):
     """
     # If no subcommand, launch interactive ORC
     if ctx.invoked_subcommand is None:
-        # Check authentication first
-        if not is_authenticated():
-            require_auth()
-        
-        # Launch interactive ORC
+        # Launch interactive ORC (no auth required)
         from orc.cli_loop import run_cli_session
         run_cli_session()
 
@@ -49,7 +45,7 @@ def index(path, output, force):
     """
     # No auth required for basic indexing
     from orc.core.parallel_indexer import index_directory_parallel
-    from orc.storage.graph_db import GraphDatabase
+    from orc.storage.graph_db import GraphStorage
     
     path = Path(path).resolve()
     output = Path(output)
@@ -69,46 +65,44 @@ def index(path, output, force):
     console.print("\n[yellow]Indexing files...[/yellow]")
     
     try:
-        # Use parallel indexer
-        with Progress() as progress:
-            task = progress.add_task("[cyan]Indexing...", total=None)
-            result = index_directory_parallel(path)
-            progress.update(task, completed=100)
+        # Use parallel indexer (no progress bar, just show message)
+        result = index_directory_parallel(path)
         
         # Save to database
         console.print("[yellow]Saving to database...[/yellow]")
-        db = GraphDatabase(str(output))
+        db = GraphStorage(output)
         
-        # Store files
+        # Store files using upsert_file_index
         for file_path, file_info in result.get('files', {}).items():
-            db.add_file(
-                file_path=file_path,
+            db.upsert_file_index(
+                path=str(file_path),
                 language=file_info.get('language', 'unknown'),
-                size=file_info.get('loc', 0)
+                framework=file_info.get('framework', ''),
+                loc=file_info.get('loc', 0),
+                last_modified=0.0,  # Will be updated by incremental indexing
+                hash_value='',
+                metadata=file_info
             )
         
-        # Store functions
-        for func_name, func_info in result.get('functions', {}).items():
-            db.add_function(
-                name=func_name,
-                file_path=func_info.get('file_path', ''),
-                start_line=func_info.get('start_line', 0),
-                end_line=func_info.get('end_line', 0),
-                complexity=func_info.get('complexity', 1),
-                params=func_info.get('params', [])
-            )
+        # Store functions using bulk_upsert_functions
+        functions_dict = result.get('functions', {})
+        if functions_dict:
+            db.bulk_upsert_functions(functions_dict)
         
-        # Store classes
-        for class_name, class_info in result.get('classes', {}).items():
-            db.add_class(
-                name=class_name,
-                file_path=class_info.get('file_path', ''),
-                start_line=class_info.get('start_line', 0),
-                end_line=class_info.get('end_line', 0),
-                methods=class_info.get('methods', [])
-            )
+        # Store classes using bulk_upsert_classes
+        classes_dict = result.get('classes', {})
+        if classes_dict:
+            db.bulk_upsert_classes(classes_dict)
         
-        db.connection.commit()
+        # Store imports
+        for file_path, imports in result.get('imports', {}).items():
+            if imports:
+                db.bulk_upsert_imports(str(file_path), imports)
+        
+        # Store exports
+        for file_path, exports in result.get('exports', {}).items():
+            if exports:
+                db.bulk_upsert_exports(str(file_path), exports)
         
         console.print("\n[bold green]✓ Indexing complete![/bold green]")
         console.print(f"  Files: {len(result.get('files', {}))}")
