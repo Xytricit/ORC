@@ -8,7 +8,6 @@ import sys
 import json
 import time
 import random
-import threading
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
@@ -31,11 +30,10 @@ def _load_env():
 _load_env()
 
 from rich.console import Console
-from rich.live import Live
 from rich.panel import Panel
 from rich.text import Text
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
-from rich.box import ROUNDED, HEAVY, DOUBLE
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.box import ROUNDED
 from rich.table import Table
 from rich.markdown import Markdown
 
@@ -243,20 +241,7 @@ def show_info_panel(title: str, content: str, style: str = "cyan"):
     console.print(panel)
 
 
-# Tool display function now in ui_components.py
-# Keeping this for backwards compatibility
-def show_tool_log(tool_name: str, status: str = "running", args: dict = None):
-    """Show attractive tool execution log - delegates to ui_components"""
-    from orc.ui_components import show_tool_execution
-    show_tool_execution(tool_name, status, args)
-
-
-# Task list display function now in ui_components.py  
-# Keeping this for backwards compatibility
-def show_ai_todo(tasks: List[Dict]):
-    """Show AI's current task list - delegates to ui_components"""
-    from orc.ui_components import show_task_list
-    show_task_list(tasks)
+# Wrapper functions removed - use ui_components directly
 
 
 def show_memory_bar(session: 'ORCChatSession'):
@@ -825,12 +810,12 @@ class ORCChatSession:
             arguments = tool_call.get("arguments", {})
             
             # Show tool being executed with arguments
-            show_tool_log(tool_name, "running", arguments)
+            show_tool_execution(tool_name, "running", arguments)
             
             # Execute the tool with error handling
             try:
                 result = self.tools.execute_tool(tool_name, arguments)
-                show_tool_log(tool_name, "done")
+                show_tool_execution(tool_name, "done")
                 
                 # Show summary of result
                 if isinstance(result, dict) and not result.get('error'):
@@ -840,7 +825,7 @@ class ORCChatSession:
                         
             except Exception as e:
                 result = {"error": f"Tool failed: {str(e)}"}
-                show_tool_log(tool_name, "error")
+                show_tool_execution(tool_name, "error")
                 console.print(f"  [dim]│[/dim]    [red]{str(e)[:80]}[/red]")
                 # Continue instead of breaking
             

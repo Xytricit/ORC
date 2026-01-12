@@ -5,12 +5,10 @@ Inspired by modern CLI design patterns
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.box import ROUNDED, DOUBLE, HEAVY, SIMPLE
+from rich.box import ROUNDED, DOUBLE, SIMPLE
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.layout import Layout
 from rich.text import Text
 from typing import List, Dict, Optional
-import time
 
 console = Console()
 

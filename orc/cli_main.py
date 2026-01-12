@@ -8,7 +8,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress
-from orc.cli_auth import require_auth, is_authenticated, login_flow, logout, get_api_config
+from orc.cli_auth import get_api_config
 
 console = Console()
 
