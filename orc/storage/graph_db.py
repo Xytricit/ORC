@@ -122,6 +122,89 @@ class GraphStorage:
         ''')
 
         # ============================================
+        # NEW TABLES FOR ENHANCED CODE INTELLIGENCE
+        # ============================================
+        
+        # File-to-file dependencies (who imports who)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS file_dependencies (
+                source_file TEXT NOT NULL,
+                target_file TEXT NOT NULL,
+                import_statement TEXT,
+                line_number INTEGER,
+                import_type TEXT
+            )
+        ''')
+        
+        # Resolved function calls (with file paths, not just names)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS function_calls_resolved (
+                caller_function_id TEXT NOT NULL,
+                caller_file TEXT NOT NULL,
+                caller_line INTEGER,
+                callee_function_name TEXT NOT NULL,
+                callee_function_id TEXT,
+                callee_file TEXT,
+                is_resolved BOOLEAN DEFAULT 0,
+                is_external BOOLEAN DEFAULT 0,
+                call_type TEXT
+            )
+        ''')
+        
+        # Entry points detection (where code starts)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS entry_points (
+                file_path TEXT NOT NULL,
+                entry_type TEXT NOT NULL,
+                function_name TEXT,
+                line_number INTEGER,
+                confidence REAL DEFAULT 1.0
+            )
+        ''')
+        
+        # AI-generated code summaries
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS code_summaries (
+                target_type TEXT NOT NULL,
+                target_id TEXT NOT NULL,
+                summary_short TEXT,
+                summary_detailed TEXT,
+                purpose TEXT,
+                inputs TEXT,
+                outputs TEXT,
+                side_effects TEXT,
+                business_rules TEXT,
+                complexity_explanation TEXT,
+                edge_cases TEXT,
+                assumptions TEXT,
+                ai_model TEXT,
+                confidence REAL DEFAULT 1.0,
+                generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                tokens_used INTEGER,
+                code_hash TEXT,
+                needs_refresh BOOLEAN DEFAULT 0,
+                PRIMARY KEY (target_type, target_id)
+            )
+        ''')
+        
+        # AI insights (code smells, suggestions, warnings)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ai_insights (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                target_id TEXT NOT NULL,
+                insight_type TEXT NOT NULL,
+                title TEXT,
+                description TEXT,
+                severity TEXT,
+                suggested_fix TEXT,
+                code_example TEXT,
+                ai_model TEXT,
+                confidence REAL DEFAULT 1.0,
+                generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # ============================================
         # PERFORMANCE INDEXES for large databases
         # ============================================
         
@@ -189,6 +272,36 @@ class GraphStorage:
         cursor.execute('''
             CREATE INDEX IF NOT EXISTS idx_file_loc 
             ON file_index(loc DESC)
+        ''')
+        
+        # NEW INDEXES for enhanced tables
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_file_deps_source 
+            ON file_dependencies(source_file)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_file_deps_target 
+            ON file_dependencies(target_file)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_function_calls_caller 
+            ON function_calls_resolved(caller_function_id)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_function_calls_callee 
+            ON function_calls_resolved(callee_function_name)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_summaries_target 
+            ON code_summaries(target_id)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_insights_target 
+            ON ai_insights(target_id)
+        ''')
+        cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_entry_points_file 
+            ON entry_points(file_path)
         ''')
         
         # ============================================
@@ -625,3 +738,197 @@ class GraphStorage:
 
         conn.close()
         return results
+    # ============================================
+    # NEW METHODS FOR ENHANCED CODE INTELLIGENCE
+    # ============================================
+    
+    def store_file_dependencies(self, dependencies):
+        """Store file-to-file dependencies"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        for dep in dependencies:
+            cursor.execute('''
+                INSERT INTO file_dependencies 
+                (source_file, target_file, import_statement, line_number, import_type)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                dep.get('source_file'),
+                dep.get('target_file'),
+                dep.get('import_statement'),
+                dep.get('line_number'),
+                dep.get('import_type')
+            ))
+        
+        conn.commit()
+        conn.close()
+    
+    def store_resolved_function_calls(self, calls):
+        """Store resolved function calls"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        for call in calls:
+            cursor.execute('''
+                INSERT INTO function_calls_resolved 
+                (caller_function_id, caller_file, caller_line, callee_function_name,
+                 callee_function_id, callee_file, is_resolved, is_external, call_type)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                call.get('caller_function_id'),
+                call.get('caller_file'),
+                call.get('caller_line'),
+                call.get('callee_function_name'),
+                call.get('callee_function_id'),
+                call.get('callee_file'),
+                call.get('is_resolved', False),
+                call.get('is_external', False),
+                call.get('call_type', 'direct')
+            ))
+        
+        conn.commit()
+        conn.close()
+    
+    def store_entry_points(self, entry_points):
+        """Store detected entry points"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        for ep in entry_points:
+            cursor.execute('''
+                INSERT INTO entry_points 
+                (file_path, entry_type, function_name, line_number, confidence)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (
+                ep.get('file_path'),
+                ep.get('entry_type'),
+                ep.get('function_name'),
+                ep.get('line_number'),
+                ep.get('confidence', 1.0)
+            ))
+        
+        conn.commit()
+        conn.close()
+    
+    def store_summary(self, target_type, target_id, summary):
+        """Store AI-generated code summary"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            INSERT OR REPLACE INTO code_summaries 
+            (target_type, target_id, summary_short, summary_detailed, purpose,
+             inputs, outputs, side_effects, business_rules, complexity_explanation,
+             edge_cases, assumptions, ai_model, confidence, tokens_used, code_hash)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            target_type,
+            target_id,
+            summary.get('summary_short'),
+            summary.get('summary_detailed'),
+            summary.get('purpose'),
+            summary.get('inputs'),
+            summary.get('outputs'),
+            summary.get('side_effects'),
+            summary.get('business_rules'),
+            summary.get('complexity_explanation'),
+            summary.get('edge_cases'),
+            summary.get('assumptions'),
+            summary.get('ai_model'),
+            summary.get('confidence', 1.0),
+            summary.get('tokens_used'),
+            summary.get('code_hash')
+        ))
+        
+        conn.commit()
+        conn.close()
+    
+    def get_function_with_summary(self, function_name):
+        """Get function details with AI summary"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT 
+                f.name, f.file_path, f.line_start, f.line_end, f.complexity,
+                f.calls_json, s.summary_short, s.summary_detailed, s.purpose,
+                s.inputs, s.outputs, s.business_rules, s.edge_cases
+            FROM function_index f
+            LEFT JOIN code_summaries s ON f.id = s.target_id
+            WHERE f.name LIKE ?
+        ''', (f'%{function_name}%',))
+        
+        result = cursor.fetchone()
+        conn.close()
+        
+        if not result:
+            return None
+        
+        return {
+            'name': result[0],
+            'file_path': result[1],
+            'line_start': result[2],
+            'line_end': result[3],
+            'complexity': result[4],
+            'calls': result[5],
+            'summary': result[6],
+            'details': result[7],
+            'purpose': result[8],
+            'inputs': result[9],
+            'outputs': result[10],
+            'business_rules': result[11],
+            'edge_cases': result[12]
+        }
+    
+    def get_file_dependencies(self, file_path):
+        """Get dependencies for a file"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        # What this file imports
+        cursor.execute('''
+            SELECT target_file, import_statement, line_number
+            FROM file_dependencies
+            WHERE source_file = ?
+        ''', (file_path,))
+        imports = cursor.fetchall()
+        
+        # Who imports this file
+        cursor.execute('''
+            SELECT source_file, import_statement, line_number
+            FROM file_dependencies
+            WHERE target_file = ?
+        ''', (file_path,))
+        imported_by = cursor.fetchall()
+        
+        conn.close()
+        
+        return {
+            'imports': [{'file': i[0], 'statement': i[1], 'line': i[2]} for i in imports],
+            'imported_by': [{'file': i[0], 'statement': i[1], 'line': i[2]} for i in imported_by]
+        }
+    
+    def get_entry_points(self):
+        """Get all entry points"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            SELECT file_path, entry_type, function_name, line_number, confidence
+            FROM entry_points
+            ORDER BY confidence DESC
+        ''')
+        
+        results = cursor.fetchall()
+        conn.close()
+        
+        return [
+            {
+                'file_path': r[0],
+                'entry_type': r[1],
+                'function_name': r[2],
+                'line_number': r[3],
+                'confidence': r[4]
+            }
+            for r in results
+        ]

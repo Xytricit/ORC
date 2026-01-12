@@ -1,337 +1,297 @@
 """
-ORC UI Components - Beautiful, Professional CLI Interface
-Inspired by modern CLI design patterns
+Premium UI Components for ORC Chat Interface
+
+Inspired by Claude CLI, Gemini CLI, and Qwen CLI
 """
+
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich.box import ROUNDED, DOUBLE, SIMPLE
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.text import Text
-from typing import List, Dict, Optional
+from rich.syntax import Syntax
+from rich.markdown import Markdown
+from rich.table import Table
+from rich import box
+import re
+from typing import Optional, List, Dict
 
 console = Console()
 
 
-def show_logo():
-    """Display ORC ASCII logo"""
-    logo = """
-    [bold cyan]
-     ██████╗ ██████╗  ██████╗
-    ██╔═══██╗██╔══██╗██╔════╝
-    ██║   ██║██████╔╝██║     
-    ██║   ██║██╔══██╗██║     
-    ╚██████╔╝██║  ██║╚██████╗
-     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝
-    [/bold cyan]
+def display_user_message(message: str):
+    """Display user message with clean formatting"""
+    console.print()
+    console.print("┌─ [bold cyan]You[/bold cyan]")
+    
+    # Handle multi-line messages
+    lines = message.split('\n')
+    for line in lines:
+        console.print(f"│ {line}")
+    
+    console.print("└─")
+    console.print()
+
+
+def display_ai_message(message: str, metadata: Optional[Dict] = None):
     """
-    console.print(logo)
-
-
-def show_tagline(version: str, lines: int, languages: int):
-    """Display tagline box"""
-    tagline = Panel(
-        f"[bold]AI-Powered Codebase Intelligence[/bold]\n"
-        f"v{version} | {lines:,} lines | {languages} languages",
-        box=ROUNDED,
-        padding=(0, 3),
-        border_style="cyan"
-    )
-    console.print(tagline)
-
-
-def show_status_bar(provider: str, model: str, context: str, status: str):
-    """Display status bar"""
-    status_text = (
-        f"[cyan]●[/cyan] Connected: {provider} ({model})    "
-        f"[cyan]●[/cyan] Context: {context}    "
-        f"[green]●[/green] Status: {status}"
-    )
-    status_panel = Panel(
-        status_text,
-        box=SIMPLE,
-        padding=(0, 2),
-        border_style="dim"
-    )
-    console.print(status_panel)
-
-
-def show_help_hint():
-    """Display help hint"""
-    console.print("\n[dim]Type /help for commands or /exit to quit[/dim]\n")
-    console.print("─" * 70)
-
-
-def show_analysis_steps(steps: List[str]):
-    """Show multi-step analysis with spinners"""
-    with Progress(
-        SpinnerColumn(spinner_name="dots"),
-        TextColumn("[progress.description]{task.description}"),
-        console=console,
-    ) as progress:
-        for step in steps:
-            task = progress.add_task(f"[cyan]{step}[/cyan]", total=None)
-            time.sleep(0.6)  # Simulate work
-            progress.update(task, completed=True)
-            progress.remove_task(task)
-            console.print(f"[green]✓[/green] {step}")
-
-
-def show_results_table(results: Dict[str, tuple]):
-    """Display analysis results in a table
+    Display AI message with syntax highlighting and metadata
     
     Args:
-        results: Dict of {metric: (value, status)}
+        message: AI response text (may contain code blocks)
+        metadata: Optional dict with tokens, time, cost info
     """
-    console.print("\n" + "─" * 70)
-    console.print("\n  [bold]ANALYSIS RESULTS[/bold]\n")
+    console.print()
+    console.print("┌─ [bold green]ORC[/bold green]")
     
-    table = Table(
-        show_header=True,
-        header_style="bold",
-        border_style="dim",
-        box=ROUNDED,
-        padding=(0, 2)
-    )
+    # Parse and display message with code highlighting
+    parts = parse_message_with_code(message)
     
-    table.add_column("Metric", style="cyan", width=25)
-    table.add_column("Value", style="white", width=20)
-    table.add_column("Status", style="green", width=25)
-    
-    for metric, (value, status) in results.items():
-        # Add status icon
-        if "Excellent" in status or "Good" in status or "Clean" in status:
-            status_display = f"[green]✓[/green] {status}"
-        elif "Outdated" in status or "Medium" in status:
-            status_display = f"[yellow]●[/yellow] {status}"
-        else:
-            status_display = f"[cyan]●[/cyan] {status}"
+    for part in parts:
+        if part['type'] == 'text':
+            # Regular text
+            lines = part['content'].split('\n')
+            for line in lines:
+                if line.strip():  # Skip empty lines
+                    console.print(f"│ {line}")
         
-        table.add_row(metric, value, status_display)
+        elif part['type'] == 'code':
+            # Code block with syntax highlighting
+            console.print("│")
+            display_code_block(part['content'], part.get('language', 'python'), prefix="│ ")
+            console.print("│")
     
-    console.print(table)
-    console.print("\n" + "─" * 70 + "\n")
-
-
-def show_insights(insights: List[str]):
-    """Display key insights"""
-    console.print("  [bold]KEY INSIGHTS[/bold]\n")
+    # Footer with metadata
+    if metadata:
+        footer_parts = []
+        if 'tokens' in metadata:
+            footer_parts.append(f"tokens: {metadata['tokens']}")
+        if 'time' in metadata:
+            footer_parts.append(f"time: {metadata['time']:.1f}s")
+        if 'cost' in metadata:
+            footer_parts.append(f"cost: ${metadata['cost']:.4f}")
+        
+        if footer_parts:
+            console.print(f"└─ [dim]{' | '.join(footer_parts)}[/dim]")
+        else:
+            console.print("└─")
+    else:
+        console.print("└─")
     
-    for insight in insights:
-        console.print(f"  [cyan]●[/cyan] {insight}")
+    console.print()
+
+
+def parse_message_with_code(message: str) -> List[Dict]:
+    """
+    Parse message to separate text and code blocks
     
-    console.print("\n" + "─" * 70 + "\n")
+    Returns:
+        List of dicts with 'type' ('text' or 'code'), 'content', and optional 'language'
+    """
+    parts = []
+    
+    # Regex to find code blocks: ```language\ncode\n```
+    code_block_pattern = r'```(\w+)?\n(.*?)```'
+    
+    last_end = 0
+    for match in re.finditer(code_block_pattern, message, re.DOTALL):
+        # Add text before code block
+        if match.start() > last_end:
+            text = message[last_end:match.start()].strip()
+            if text:
+                parts.append({
+                    'type': 'text',
+                    'content': text
+                })
+        
+        # Add code block
+        language = match.group(1) or 'python'
+        code = match.group(2).strip()
+        parts.append({
+            'type': 'code',
+            'language': language,
+            'content': code
+        })
+        
+        last_end = match.end()
+    
+    # Add remaining text
+    if last_end < len(message):
+        text = message[last_end:].strip()
+        if text:
+            parts.append({
+                'type': 'text',
+                'content': text
+            })
+    
+    # If no code blocks found, return as single text part
+    if not parts:
+        parts.append({
+            'type': 'text',
+            'content': message.strip()
+        })
+    
+    return parts
 
 
-def show_recommendations(recommendations: List[Dict[str, str]]):
-    """Display actionable recommendations
+def display_code_block(code: str, language: str = "python", prefix: str = ""):
+    """
+    Display syntax-highlighted code block
     
     Args:
-        recommendations: List of {title, command, description}
+        code: Code to display
+        language: Programming language for syntax highlighting
+        prefix: Prefix for each line (e.g., "│ ")
     """
-    content = "[bold]RECOMMENDED ACTIONS[/bold]\n\n"
-    
-    for idx, rec in enumerate(recommendations, 1):
-        content += f"  [cyan]{idx}.[/cyan] {rec['title']}\n"
-        content += f"     [dim]{rec['description']}[/dim]\n"
-        if rec.get('command'):
-            content += f"     [yellow]{rec['command']}[/yellow]\n"
-        content += "\n"
-    
-    panel = Panel(
-        content.rstrip(),
-        title="[bold]Next Steps[/bold]",
-        title_align="center",
-        box=ROUNDED,
-        border_style="cyan",
-        padding=(1, 2)
+    syntax = Syntax(
+        code,
+        language,
+        theme="monokai",
+        line_numbers=False,
+        word_wrap=True,
+        background_color="default"
     )
     
-    console.print(panel)
+    # If prefix specified, render and add prefix to each line
+    if prefix:
+        # Render syntax to string
+        from io import StringIO
+        from rich.console import Console as TempConsole
+        
+        string_buffer = StringIO()
+        temp_console = TempConsole(file=string_buffer, force_terminal=True, width=console.width - len(prefix) - 2)
+        temp_console.print(syntax)
+        output = string_buffer.getvalue()
+        
+        for line in output.rstrip('\n').split('\n'):
+            console.print(f"{prefix}{line}")
+    else:
+        console.print(syntax)
+
+
+def display_tool_execution(tool_name: str, result: str):
+    """Display tool execution result with clean formatting"""
+    console.print()
+    console.print(f"┌─ [bold yellow]Tool: {tool_name}[/bold yellow]")
+    
+    lines = result.split('\n')
+    for line in lines:
+        console.print(f"│ {line}")
+    
+    console.print("└─")
     console.print()
 
 
-def show_quick_actions():
-    """Display quick action buttons"""
-    actions = [
-        ("/analyze", "Deep codebase analysis"),
-        ("/search", "Find code patterns"),
-        ("/deps", "Check dependencies"),
-        ("/quality", "Code quality audit"),
-        ("/help", "View all commands")
-    ]
+def display_error(title: str, message: str, suggestion: Optional[str] = None):
+    """Display error with helpful formatting"""
+    content = f"[red]{message}[/red]"
     
-    content = "[bold]QUICK ACTIONS[/bold]\n\n"
-    for cmd, desc in actions:
-        content += f"  [cyan]{cmd:15}[/cyan] {desc}\n"
+    if suggestion:
+        content += f"\n\n[dim]Suggestion: {suggestion}[/dim]"
     
     panel = Panel(
-        content.rstrip(),
-        title="[bold]Get Started[/bold]",
-        title_align="center",
-        box=SIMPLE,
-        border_style="cyan",
-        padding=(1, 2)
-    )
-    
-    console.print(panel)
-    console.print()
-
-
-def show_commands_table():
-    """Display available commands in a clean table"""
-    console.print("\n" + "─" * 70)
-    console.print("\n  [bold]AVAILABLE COMMANDS[/bold]\n")
-    console.print("─" * 70 + "\n")
-    
-    commands = [
-        ("/analyze", "Run complete codebase analysis"),
-        ("/search <query>", "Semantic code search across files"),
-        ("/explain <file>", "Get detailed AI explanation of file"),
-        ("/refactor <file>", "Receive smart refactoring suggestions"),
-        ("/docs <file>", "Auto-generate comprehensive docs"),
-        ("/test <file>", "Generate unit tests for code"),
-        ("/deps", "Analyze dependencies and security"),
-        ("/quality", "Run code quality checks"),
-        ("/providers", "Switch AI provider (Groq/OpenAI/Claude)"),
-        ("/settings", "Configure ORC preferences"),
-        ("/history", "View command history"),
-        ("/clear", "Clear the terminal screen"),
-        ("/exit", "Exit ORC")
-    ]
-    
-    for cmd, desc in commands:
-        console.print(f"  [cyan]{cmd:24}[/cyan]  {desc}")
-    
-    console.print("\n" + "─" * 70 + "\n")
-
-
-def show_error(title: str, message: str, suggestions: Optional[List[str]] = None):
-    """Display error message"""
-    content = f"[bold red]ERROR[/bold red]\n\n{message}\n"
-    
-    if suggestions:
-        content += "\n[bold]SUGGESTIONS:[/bold]\n"
-        for suggestion in suggestions:
-            content += f"  [cyan]●[/cyan] {suggestion}\n"
-    
-    panel = Panel(
-        content.rstrip(),
-        title=f"[bold red]✗[/bold red] {title}",
-        title_align="center",
-        box=DOUBLE,
+        content,
+        title=f"[red]✗ {title}[/red]",
         border_style="red",
         padding=(1, 2)
     )
     
-    console.print("\n" + "─" * 70 + "\n")
+    console.print()
     console.print(panel)
-    console.print("\n" + "─" * 70 + "\n")
+    console.print()
 
 
-def show_success(message: str, title: str = "Success"):
+def display_success(message: str):
     """Display success message"""
-    panel = Panel(
-        f"[green]{message}[/green]",
-        title=f"[bold green]✓[/bold green] {title}",
-        title_align="center",
-        box=ROUNDED,
-        border_style="green",
-        padding=(0, 2)
+    console.print(f"[green]+ {message}[/green]")
+
+
+def display_info(message: str):
+    """Display info message"""
+    console.print(f"[cyan]i {message}[/cyan]")
+
+
+def display_warning(message: str):
+    """Display warning message"""
+    console.print(f"[yellow]! {message}[/yellow]")
+
+
+def display_status_bar(model: str, context_used: int, context_total: int, 
+                       message_count: int, cost: float = 0.0):
+    """
+    Display status bar at top of chat
+    
+    Args:
+        model: Current model (e.g., "groq/llama-3.1-70b")
+        context_used: Tokens used in context
+        context_total: Total context window size
+        message_count: Number of messages in conversation
+        cost: Estimated cost
+    """
+    status_parts = [
+        f"[cyan]Model:[/cyan] {model}",
+        f"[cyan]Context:[/cyan] {context_used:,}/{context_total:,}",
+        f"[cyan]Messages:[/cyan] {message_count}",
+    ]
+    
+    if cost > 0:
+        status_parts.append(f"[cyan]Cost:[/cyan] ${cost:.4f}")
+    
+    status_text = " | ".join(status_parts)
+    
+    console.print(f"[dim]{status_text}[/dim]")
+    console.print("─" * console.width)
+    console.print()
+
+
+def display_help():
+    """Display enhanced help menu"""
+    help_table = Table(show_header=False, box=None, padding=(0, 2))
+    
+    help_table.add_row(
+        "[bold cyan]Conversation[/bold cyan]",
+        ""
     )
+    help_table.add_row("  /save [name]", "Save this conversation")
+    help_table.add_row("  /load [name]", "Load a saved conversation")
+    help_table.add_row("  /export [fmt]", "Export conversation (md/json)")
+    help_table.add_row("  /reset", "Start new conversation")
+    help_table.add_row("  /clear", "Clear screen")
+    help_table.add_row("  /history", "Show message history")
     
-    console.print("\n" + panel)
+    help_table.add_row("", "")
+    help_table.add_row(
+        "[bold cyan]Configuration[/bold cyan]",
+        ""
+    )
+    help_table.add_row("  /provider <name>", "Switch AI provider")
+    help_table.add_row("  /model <name>", "Switch model")
+    help_table.add_row("  /summarizer", "Configure code summarizer")
+    help_table.add_row("  /compact", "Toggle compact mode")
+    
+    help_table.add_row("", "")
+    help_table.add_row(
+        "[bold cyan]Code Tools[/bold cyan]",
+        ""
+    )
+    help_table.add_row("  /copy", "Copy last code block")
+    help_table.add_row("  /tokens", "Show token usage")
+    help_table.add_row("  /cost", "Show estimated cost")
+    help_table.add_row("  /context", "Show context window")
+    
+    help_table.add_row("", "")
+    help_table.add_row(
+        "[bold cyan]Help[/bold cyan]",
+        ""
+    )
+    help_table.add_row("  /help", "Show this help")
+    help_table.add_row("  /models", "List available models")
+    help_table.add_row("  /exit", "Exit ORC")
+    
     console.print()
-
-
-def show_thinking_step(step: str):
-    """Show what AI is currently thinking"""
-    console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]{step}[/dim]")
-
-
-def show_tool_execution(tool_name: str, status: str = "running", args: Optional[Dict] = None, summary: Optional[str] = None):
-    """Show tool execution with beautiful formatting"""
-    # Format tool name
-    tool_display = tool_name.replace("_", " ").title()
-    
-    if status == "running":
-        # Show what the tool is doing
-        arg_display = ""
-        if args:
-            key_args = []
-            if 'pattern' in args:
-                key_args.append(f"'{args['pattern']}'")
-            elif 'file_path' in args:
-                from pathlib import Path
-                key_args.append(f"{Path(args['file_path']).name}")
-            elif 'limit' in args:
-                key_args.append(f"limit={args['limit']}")
-            
-            if key_args:
-                arg_display = f" [dim]({', '.join(key_args)})[/dim]"
-        
-        console.print(f"  [dim]│[/dim]  [cyan]⚙[/cyan] [cyan]{tool_display}[/cyan]{arg_display}")
-    
-    elif status == "done":
-        console.print(f"  [dim]│[/dim]  [green]✓[/green] [green]{tool_display}[/green] [dim]complete[/dim]")
-        if summary:
-            console.print(f"  [dim]│[/dim]    [dim]{summary}[/dim]")
-    
-    elif status == "error":
-        console.print(f"  [dim]│[/dim]  [red]✗[/red] [red]{tool_display}[/red] [dim]failed[/dim]")
-
-
-def show_ai_plan(plan: str):
-    """Show AI's execution plan"""
-    console.print(f"  [dim]│[/dim]  [cyan]💭[/cyan] [dim]Plan: {plan}[/dim]")
-
-
-def show_section_header(title: str, iteration: Optional[tuple] = None):
-    """Show section header with optional iteration counter"""
-    if iteration:
-        current, total = iteration
-        title_text = f"{title} (Iteration {current}/{total})"
-    else:
-        title_text = title
-    
-    console.print(f"  [bold cyan]┌─ {title_text}[/bold cyan]")
-
-
-def show_section_footer(status: str = "Complete"):
-    """Show section footer"""
-    if status == "Complete":
-        console.print(f"  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]{status}[/green]")
-    elif status == "Ready":
-        console.print(f"  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]{status}[/green]")
-    else:
-        console.print(f"  [bold cyan]└─[/bold cyan] [cyan]{status}[/cyan]")
-
-
-def show_task_list(tasks: List[Dict[str, str]]):
-    """Show AI's task list with progress"""
+    console.print(Panel(
+        help_table,
+        title="[bold]ORC Commands[/bold]",
+        border_style="cyan",
+        padding=(1, 2)
+    ))
     console.print()
-    console.print("  [bold cyan]┌─ Analysis Plan[/bold cyan]")
-    
-    for idx, task in enumerate(tasks, 1):
-        status = task.get("status", "pending")
-        name = task.get("name", "Task")
-        
-        if status == "done":
-            console.print(f"  [dim]│[/dim]  [green]✓[/green] [strike dim]{idx}. {name}[/strike dim]")
-        elif status == "running":
-            console.print(f"  [dim]│[/dim]  [cyan]▶[/cyan] [bold white]{idx}. {name}[/bold white]")
-        else:
-            console.print(f"  [dim]│[/dim]  [dim]◯[/dim] [dim]{idx}. {name}[/dim]")
-    
-    console.print("  [bold cyan]└─[/bold cyan]")
-
-
-# Legacy compatibility functions
-def show_tool_log(tool_name: str, status: str = "running", args: Optional[Dict] = None):
-    """Legacy function - redirects to show_tool_execution"""
-    show_tool_execution(tool_name, status, args)
-
-
-def show_ai_todo(tasks: List[Dict]):
-    """Legacy function - redirects to show_task_list"""
-    show_task_list(tasks)
+    console.print("[dim]Tip: Press Escape twice to navigate message history[/dim]")
+    console.print()

@@ -37,6 +37,14 @@ from rich.box import ROUNDED
 from rich.table import Table
 from rich.markdown import Markdown
 
+# Import premium UI components
+from orc.ui_components import (
+    display_user_message,
+    display_ai_message,
+    display_error,
+    display_success
+)
+
 # Import beautiful UI components
 try:
     from orc.ui_components import (
@@ -72,6 +80,8 @@ from orc.ai_tools import TOOL_DEFINITIONS, ORCTools
 from orc.ai_guidelines import get_system_prompt
 from orc.subagents import SubAgent, AgentManager, interactive_agent_creation
 from orc.mode_manager import ModeManager
+from orc.session_manager import SessionManager
+from orc.token_tracker import TokenTracker
 
 # Reset client to pick up newly loaded env vars
 reset_ai_client()
@@ -100,7 +110,16 @@ SLASH_COMMANDS = [
     ("/reset", "Reset AI client"),
     ("/compact", "Toggle compact mode"),
     ("/preferences", "Manage ORC.md settings"),
+    ("/save", "Save conversation"),
+    ("/load", "Load conversation"),
+    ("/sessions", "List saved sessions"),
+    ("/export", "Export conversation (md/json)"),
+    ("/copy", "Copy last code block"),
+    ("/tokens", "Show token usage"),
+    ("/cost", "Show cost estimate"),
+    ("/context", "Show context window usage"),
     ("/exit", "Exit ORC"),
+    ("/summarizer", "Set AI provider for code summaries"),
 ]
 
 # Custom completer for slash commands
@@ -702,6 +721,12 @@ class ORCChatSession:
         # Mode system: auto, chat, work
         self.mode_manager = ModeManager()
         
+        # Session manager for save/load/export
+        self.session_manager = SessionManager()
+        
+        # Token tracker for cost estimation
+        self.token_tracker = TokenTracker()
+        
         # Auto-create web project if authenticated
         self._auto_create_web_project()
         
@@ -1035,7 +1060,7 @@ class ORCChatSession:
                 show_error_panel("Tool Error", str(e))
                 break
             
-            console.print("  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]Complete[/green]")
+            console.print("  [bold cyan]└─[/bold cyan] [green]+[/green] [green]Complete[/green]")
             
             # Build tool call message for API
             tool_calls_for_api = [
@@ -1115,7 +1140,7 @@ class ORCChatSession:
                 self._handle_error_response(response.content)
                 return ""
             
-            console.print("  [bold cyan]└─[/bold cyan] [green]✓[/green] [green]Ready[/green]")
+            console.print("  [bold cyan]└─[/bold cyan] [green]+[/green] [green]Ready[/green]")
         
         # Get final response content
         # If no content but we did process tools, it might be the AI didn't generate a final response
@@ -1137,6 +1162,9 @@ class ORCChatSession:
         # Update permanent memory if tools were used
         if tools_called and ORCPreferences.exists():
             self._update_permanent_memory(tools_called, all_tool_results)
+        
+        # Extract code blocks from response for /copy command
+        self.session_manager.update_last_code_block(final_response)
         
         return final_response
     
@@ -1306,7 +1334,7 @@ class ORCChatSession:
                     # Check for partial command and show suggestions
                     if " " not in user_input and len(user_input) > 1:
                         partial = user_input.lower()
-                        commands = ["/help", "/status", "/providers", "/provider", "/models", "/model", "/clear", "/history", "/reset", "/compact", "/exit"]
+                        commands = ["/help", "/status", "/providers", "/provider", "/models", "/model", "/clear", "/history", "/reset", "/compact", "/summarizer", "/exit"]
                         matches = [c for c in commands if c.startswith(partial)]
                         # Filter out exact matches from suggestions
                         if partial in matches:
@@ -1370,15 +1398,9 @@ class ORCChatSession:
                 # Process with AI
                 response = self.chat(user_input)
                 
-                # Display response with nice formatting
+                # Display response with premium formatting
                 if response:
-                    console.print()
-                    console.print(Panel(
-                        format_response(response),
-                        border_style="dim",
-                        box=ROUNDED,
-                        padding=(1, 2),
-                    ))
+                    display_ai_message(response)
                     
                     # Show memory bar below response
                     show_memory_bar(self)
@@ -1502,6 +1524,44 @@ class ORCChatSession:
 
         elif cmd == "/list-providers":
             self.list_all_providers()
+        
+        elif cmd == "/summarizer":
+            if args:
+                self.set_summarizer_provider(args)
+            else:
+                self.show_summarizer_config()
+        
+        elif cmd == "/save":
+            from orc.slash_commands_new import handle_save_command
+            handle_save_command(self, args)
+        
+        elif cmd == "/load":
+            from orc.slash_commands_new import handle_load_command
+            handle_load_command(self, args)
+        
+        elif cmd == "/sessions":
+            from orc.slash_commands_new import handle_sessions_command
+            handle_sessions_command(self)
+        
+        elif cmd == "/export":
+            from orc.slash_commands_new import handle_export_command
+            handle_export_command(self, args)
+        
+        elif cmd == "/copy":
+            from orc.slash_commands_new import handle_copy_command
+            handle_copy_command(self)
+        
+        elif cmd == "/tokens":
+            from orc.slash_commands_new import handle_tokens_command
+            handle_tokens_command(self)
+        
+        elif cmd == "/cost":
+            from orc.slash_commands_new import handle_cost_command
+            handle_cost_command(self)
+        
+        elif cmd == "/context":
+            from orc.slash_commands_new import handle_context_command
+            handle_context_command(self)
 
         else:
             console.print(f"[yellow]Unknown command: {cmd}[/yellow]")
@@ -1726,6 +1786,18 @@ class ORCChatSession:
   [bold]/reset[/bold]             - Reset AI client and clear history
   [bold]/compact[/bold]           - Toggle compact response mode
   [bold]/preferences[/bold]       - Manage ORC.md preferences file
+  [bold]/summarizer[/bold] <name> - Set AI provider for code summaries
+  
+  [cyan]Session Management:[/cyan]
+  [bold]/save[/bold] [name]       - Save conversation to file
+  [bold]/load[/bold] [name]       - Load conversation from file
+  [bold]/export[/bold] [name]     - Export conversation to markdown
+  
+  [cyan]Statistics:[/cyan]
+  [bold]/tokens[/bold]            - Show token usage statistics
+  [bold]/context[/bold]           - Show context window usage
+  [bold]/copy[/bold]              - Copy last code block to clipboard
+  
   [bold]/exit[/bold]              - Exit the session
 
 [dim]Examples:[/dim]
@@ -1811,6 +1883,45 @@ class ORCChatSession:
                 console.print(f"\n[red]Failed to remove provider: {name}[/red]\n")
         else:
             console.print(f"[red]Provider not found: {name}[/red]")
+    
+    def set_summarizer_provider(self, provider: str):
+        """Set AI provider for code summarization"""
+        from orc.config import get_config, save_config
+        
+        valid_providers = ['groq', 'openai', 'ollama', 'anthropic', 'deepseek', 'gemini']
+        provider = provider.lower()
+        
+        if provider not in valid_providers:
+            console.print(f"[red]Invalid provider: {provider}[/red]")
+            console.print(f"[dim]Valid providers: {', '.join(valid_providers)}[/dim]")
+            return
+        
+        # Update config
+        config = get_config()
+        config['summarizer_provider'] = provider
+        save_config(config)
+        
+        console.print(f"[green]+[/green] Summarizer provider set to: [cyan]{provider}[/cyan]")
+        console.print(f"[dim]AI summaries will now use {provider} for code analysis[/dim]")
+    
+    def show_summarizer_config(self):
+        """Show current summarizer configuration"""
+        from orc.config import get_config
+        
+        config = get_config()
+        provider = config.get('summarizer_provider', 'groq')
+        
+        console.print("\n[bold cyan]Code Summarization Configuration[/bold cyan]\n")
+        console.print(f"  Current Provider: [yellow]{provider}[/yellow]")
+        console.print(f"\n[dim]Usage: /summarizer <provider>[/dim]")
+        console.print(f"[dim]Example: /summarizer ollama[/dim]")
+        console.print(f"\n[dim]Available providers:[/dim]")
+        console.print(f"[dim]  groq      - Fast & free (recommended)[/dim]")
+        console.print(f"[dim]  openai    - GPT models[/dim]")
+        console.print(f"[dim]  ollama    - Local & private[/dim]")
+        console.print(f"[dim]  anthropic - Claude models[/dim]")
+        console.print(f"[dim]  deepseek  - DeepSeek models[/dim]")
+        console.print(f"[dim]  gemini    - Google Gemini[/dim]\n")
     
     def list_all_providers(self):
         """List all available providers including custom ones"""

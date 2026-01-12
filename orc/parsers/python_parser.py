@@ -61,18 +61,39 @@ class PythonParser(BaseParser):
         classes: Dict[str, Dict] = {}
         imports: Dict[str, Dict] = {}
         exports: Dict[str, Dict] = {}
+        
+        # Enhanced: Store detailed import info (for database)
+        imports_detailed = []  # List of import statements with line numbers
+        entry_points = []  # Detect entry points
 
-        # Collect imports (all levels)
+        # Collect imports with detailed info
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     mod = alias.name
                     entry = imports.setdefault(mod, {"count": 0})
                     entry["count"] += 1
+                    # Store detailed import info
+                    imports_detailed.append({
+                        "module": mod,
+                        "imported_names": [alias.asname or alias.name],
+                        "line_number": node.lineno,
+                        "import_type": "import",
+                        "import_statement": f"import {mod}" + (f" as {alias.asname}" if alias.asname else "")
+                    })
             elif isinstance(node, ast.ImportFrom) and node.module:
                 mod = node.module
                 entry = imports.setdefault(mod, {"count": 0})
                 entry["count"] += 1
+                # Store detailed import info
+                imported_names = [alias.name for alias in node.names]
+                imports_detailed.append({
+                    "module": mod,
+                    "imported_names": imported_names,
+                    "line_number": node.lineno,
+                    "import_type": "from_import",
+                    "import_statement": f"from {mod} import {', '.join(imported_names)}"
+                })
 
         # Only consider top-level defs for functions/classes
         for node in getattr(tree, "body", []):
@@ -138,8 +159,13 @@ class PythonParser(BaseParser):
                     "return_type": return_type,
                 }
 
+                # Detect if function is exported (not private)
                 if not func_name.startswith("_"):
-                    exports.setdefault(func_name, {"kind": "function"})
+                    exports.setdefault(func_name, {
+                        "kind": "function",
+                        "line": line_start,
+                        "is_async": is_async
+                    })
 
             elif isinstance(node, ast.ClassDef):
                 cls_name = node.name
@@ -218,7 +244,23 @@ class PythonParser(BaseParser):
                 }
 
                 if not cls_name.startswith("_"):
-                    exports.setdefault(cls_name, {"kind": "class"})
+                    exports.setdefault(cls_name, {"kind": "class", "line": line_start})
+        
+        # Detect entry points (if __name__ == "__main__")
+        for node in tree.body:
+            if isinstance(node, ast.If):
+                # Check if it's if __name__ == "__main__":
+                if isinstance(node.test, ast.Compare):
+                    left = node.test.left
+                    if isinstance(left, ast.Name) and left.id == "__name__":
+                        # Found entry point
+                        entry_points.append({
+                            "file_path": str(path),
+                            "entry_type": "main",
+                            "function_name": "__main__",
+                            "line_number": node.lineno,
+                            "confidence": 1.0
+                        })
 
         return {
             "files": files,
@@ -226,6 +268,8 @@ class PythonParser(BaseParser):
             "classes": classes,
             "imports": imports,
             "exports": exports,
+            "imports_detailed": imports_detailed,  # NEW: Detailed import info
+            "entry_points": entry_points,          # NEW: Entry point detection
         }
 
     # --- helpers ---------------------------------------------------------

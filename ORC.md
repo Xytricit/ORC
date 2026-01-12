@@ -6,7 +6,7 @@ ORC uses this to provide better, more personalized assistance.
 ## Project Info
 
 - Name: ORC
-- Languages: HTML, Python, JavaScript, TypeScript, CSS
+- Languages: Python, HTML, CSS, TypeScript, JavaScript
 - Created: 2026-01-12
 
 ## Preferences
@@ -21,20 +21,18 @@ ORC uses this to provide better, more personalized assistance.
 *This section is automatically maintained by ORC AI to remember your codebase.*
 
 ### Last Analysis
-- Date: 2026-01-12T13:41:24.619729
-- Total Files: 1
-- Total LOC: None
+- Date: 2026-01-12T18:17:31.471455
+- Total Files: None
+- Total LOC: 37815
 - Main Folders: 
 
 ### Codebase Structure
-
+Project with 5 language(s): Python, HTML, CSS, TypeScript, JavaScript
 
 ### Known Issues
 
 
 ### Tools Recently Used
-- get_codebase_stats
-- get_codebase_map
 ## Project Notes
 
 Add any notes about your project here that might help ORC understand it better:

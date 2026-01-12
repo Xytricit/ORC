@@ -71,13 +71,15 @@ class ParallelIndexer:
             if parser_name:
                 files_by_parser.setdefault(parser_name, []).append(file_path)
         
-        # Combined results
+        # Combined results (including new fields)
         combined = {
             "files": {},
             "functions": {},
             "classes": {},
             "imports": {},
-            "exports": {}
+            "exports": {},
+            "imports_detailed": [],  # NEW
+            "entry_points": []       # NEW
         }
         
         # Process files in parallel
@@ -115,13 +117,20 @@ class ParallelIndexer:
     
     def _merge_index(self, target: Dict, source: Dict):
         """Merge source index into target index"""
+        # Merge dict-type data
         for key in ["files", "functions", "classes", "imports", "exports"]:
             if key in source:
                 target[key].update(source[key])
+        
+        # Merge list-type data (NEW)
+        for key in ["imports_detailed", "entry_points"]:
+            if key in source:
+                target[key].extend(source[key])
 
 
 def index_directory_parallel(directory: Path, max_workers: int = None,
-                            file_extensions: List[str] = None) -> Dict:
+                            file_extensions: List[str] = None,
+                            with_ai_summaries: bool = False) -> Dict:
     """
     Convenience function to index an entire directory in parallel.
     
@@ -129,9 +138,10 @@ def index_directory_parallel(directory: Path, max_workers: int = None,
         directory: Root directory to index
         max_workers: Number of parallel workers
         file_extensions: List of extensions to index (default: common code files)
+        with_ai_summaries: Generate AI summaries (default: False - only on demand)
     
     Returns:
-        Combined index dictionary
+        Combined index dictionary with optional AI summaries
     """
     if file_extensions is None:
         file_extensions = ['.py', '.js', '.ts', '.jsx', '.tsx']
@@ -159,7 +169,38 @@ def index_directory_parallel(directory: Path, max_workers: int = None,
     
     # Index in parallel
     indexer = ParallelIndexer(max_workers=max_workers)
-    return indexer.index_files(files, parser_map)
+    result = indexer.index_files(files, parser_map)
+    
+    # Resolve dependencies
+    print("\nResolving dependencies...")
+    from orc.core.dependency_resolver import DependencyResolver
+    resolver = DependencyResolver()
+    resolved = resolver.resolve(result)
+    
+    # Add resolved dependencies to result
+    result['file_dependencies_resolved'] = resolved['file_dependencies']
+    result['function_calls_resolved'] = resolved['function_calls_resolved']
+    result['circular_dependencies'] = resolved['circular_dependencies']
+    
+    if resolved['circular_dependencies']:
+        print(f"  Warning: Found {len(resolved['circular_dependencies'])} circular dependencies")
+    
+    # Generate AI summaries if requested
+    if with_ai_summaries:
+        try:
+            print("\nGenerating AI summaries...")
+            from orc.ai_summarizer import AICodeSummarizer
+            
+            summarizer = AICodeSummarizer()
+            summaries = summarizer.generate_summaries(result)
+            result['summaries'] = summaries
+            
+        except Exception as e:
+            print(f"Warning: Failed to generate AI summaries: {e}")
+            print("Continuing without summaries...")
+            result['summaries'] = {}
+    
+    return result
 
 
 # Example usage:

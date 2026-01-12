@@ -1,7 +1,7 @@
 def get_orc_banner():
-    """Get the ORC ASCII art banner in green"""
+    """Get the ORC ASCII art banner in green with premium chevron"""
     banner = """
-[green]
+[cyan]›[/cyan] [green]
     ╔═══════════════════════════════════════════════╗
     ║                                               ║
     ║     ██████╗ ██████╗  ██████╗                ║
@@ -11,10 +11,9 @@ def get_orc_banner():
     ║    ╚██████╔╝██║  ██║╚██████╗                ║
     ║     ╚═════╝ ╚═╝  ╚═╝ ╚═════╝                ║
     ║                                               ║
-    ╚═══════════════════════════════════════════════╝
-[/green]
-[dim]    Optimization & Refactoring Catalyst v2.0
-    AI-Powered Codebase Intelligence Platform[/dim]
+    ╚═══════════════════════════════════════════════╝[/green]
+    [bold]Optimization & Refactoring Catalyst[/bold] [dim]v2.0[/dim]
+    [dim]AI-Powered Codebase Intelligence Platform[/dim]
 """
     return banner
 
@@ -35,16 +34,16 @@ def get_orc_banner_plain():
 
 
 def print_startup_info(project_name, loc, languages):
-    """Get the startup info line"""
+    """Get the startup info line with premium design"""
     lang_str = ", ".join(languages) if languages else "Unknown"
     return f"""
-[dim]    Project:[/dim]    [cyan]{project_name}[/cyan]
-[dim]    Lines:[/dim]      [cyan]{loc:,}[/cyan]
-[dim]    Languages:[/dim]  [cyan]{lang_str}[/cyan]
-[dim]    Status:[/dim]     [green]Ready[/green]
+    [dim]Project:[/dim]    [cyan]{project_name}[/cyan]
+    [dim]Lines:[/dim]      [cyan]{loc:,}[/cyan]
+    [dim]Languages:[/dim]  [cyan]{lang_str}[/cyan]
+    [dim]Status:[/dim]     [green]● Ready[/green]
 
-[dim]    Type /help for commands or just ask questions[/dim]
-[dim]═══════════════════════════════════════════════════[/dim]
+    [dim]Type a message or /help for commands[/dim]
+    [dim]─────────────────────────────────────────────────[/dim]
 """
 
 

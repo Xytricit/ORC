@@ -2011,3 +2011,108 @@ class ORCTools:
                 "low": len([v for v in violations if v["severity"] == "low"])
             }
         }
+
+    # ============================================
+    # NEW METHODS FOR AI SUMMARIES
+    # ============================================
+    
+    def get_function_with_summary(self, function_name: str) -> Dict[str, Any]:
+        """Get function details with AI summary"""
+        conn = self._get_connection()
+        if not conn:
+            return {"error": "Database not found"}
+        
+        try:
+            cursor = conn.execute('''
+                SELECT 
+                    f.name, f.file_path, f.line_start, f.line_end, f.complexity,
+                    f.calls_json, s.summary_short, s.summary_detailed, s.purpose,
+                    s.inputs, s.outputs, s.business_rules, s.edge_cases
+                FROM function_index f
+                LEFT JOIN code_summaries s ON f.id = s.target_id
+                WHERE f.name LIKE ?
+                LIMIT 1
+            ''', (f'%{function_name}%',))
+            
+            result = cursor.fetchone()
+            
+            if not result:
+                return {"error": f"Function '{function_name}' not found"}
+            
+            return {
+                'name': result[0],
+                'file_path': result[1],
+                'line_start': result[2],
+                'line_end': result[3],
+                'complexity': result[4],
+                'calls': result[5],
+                'summary': result[6],
+                'details': result[7],
+                'purpose': result[8],
+                'inputs': result[9],
+                'outputs': result[10],
+                'business_rules': result[11],
+                'edge_cases': result[12]
+            }
+        finally:
+            conn.close()
+    
+    def get_file_dependencies(self, file_path: str) -> Dict[str, Any]:
+        """Get dependencies for a file"""
+        conn = self._get_connection()
+        if not conn:
+            return {"error": "Database not found"}
+        
+        try:
+            # What this file imports
+            cursor = conn.execute('''
+                SELECT target_file, import_statement, line_number
+                FROM file_dependencies
+                WHERE source_file LIKE ?
+            ''', (f'%{file_path}%',))
+            imports = cursor.fetchall()
+            
+            # Who imports this file
+            cursor = conn.execute('''
+                SELECT source_file, import_statement, line_number
+                FROM file_dependencies
+                WHERE target_file LIKE ?
+            ''', (f'%{file_path}%',))
+            imported_by = cursor.fetchall()
+            
+            return {
+                'imports': [{'file': i[0], 'statement': i[1], 'line': i[2]} for i in imports],
+                'imported_by': [{'file': i[0], 'statement': i[1], 'line': i[2]} for i in imported_by]
+            }
+        finally:
+            conn.close()
+    
+    def get_entry_points(self) -> Dict[str, Any]:
+        """Get all entry points in the codebase"""
+        conn = self._get_connection()
+        if not conn:
+            return {"error": "Database not found"}
+        
+        try:
+            cursor = conn.execute('''
+                SELECT file_path, entry_type, function_name, line_number, confidence
+                FROM entry_points
+                ORDER BY confidence DESC
+            ''')
+            
+            results = cursor.fetchall()
+            
+            return {
+                'entry_points': [
+                    {
+                        'file_path': r[0],
+                        'entry_type': r[1],
+                        'function_name': r[2],
+                        'line_number': r[3],
+                        'confidence': r[4]
+                    }
+                    for r in results
+                ]
+            }
+        finally:
+            conn.close()
