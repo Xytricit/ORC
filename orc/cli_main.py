@@ -608,8 +608,8 @@ def scan(path, output, quick):
     else:
         console.print(Panel(
             "[bold green]Quick Scan Complete![/bold green]\n\n"
-            f"✓ Indexed {len(result.get('files', {}))} files\n"
-            "✓ Database ready for analysis\n\n"
+            f"+ Indexed {len(result.get('files', {}))} files\n"
+            "+ Database ready for analysis\n\n"
             "[dim]Run [cyan]orc report[/cyan] for detailed analysis[/dim]",
             border_style="green"
         ))
@@ -667,7 +667,7 @@ def report(db, output_format, save):
         
         if save:
             Path(save).write_text(output_text)
-            console.print(f"[green]✓[/green] Report saved to {save}")
+            console.print(f"[green]+[/green] Report saved to {save}")
         else:
             print(output_text)
         return
@@ -785,7 +785,7 @@ def report(db, output_format, save):
             f.write(f"  Total LOC: {stats.get('total_loc', 0):,}\n")
             f.write(f"  Average Complexity: {avg_complexity:.2f}\n")
             f.write(f"  Max Complexity: {max_complexity}\n")
-        console.print(f"[green]✓[/green] Report saved to {save}")
+        console.print(f"[green]+[/green] Report saved to {save}")
 
 
 @main.command()
@@ -1013,7 +1013,7 @@ def init():
     # Create .orc directory
     orc_dir = Path('.orc')
     orc_dir.mkdir(exist_ok=True)
-    console.print("[green]✓[/green] Created .orc/ directory")
+    console.print("[green]+[/green] Created .orc/ directory")
     
     # Create .orcrc config file
     orcrc_path = Path('.orcrc')
@@ -1042,7 +1042,7 @@ def init():
         }
         with open(orcrc_path, 'w') as f:
             yaml.dump(config, f, default_flow_style=False)
-        console.print("[green]✓[/green] Created .orcrc config file")
+        console.print("[green]+[/green] Created .orcrc config file")
     
     # Create .orcignore file
     orcignore_path = Path('.orcignore')
@@ -1069,7 +1069,7 @@ def init():
         ]
         with open(orcignore_path, 'w') as f:
             f.write('\n'.join(ignore_patterns))
-        console.print("[green]✓[/green] Created .orcignore file")
+        console.print("[green]+[/green] Created .orcignore file")
     
     console.print("\n[bold green]ORC initialized successfully![/bold green]")
     console.print("\nNext steps:")
@@ -1142,7 +1142,7 @@ def config_set(key, value):
     with open(orcrc_path, 'w') as f:
         yaml.dump(config_data, f, default_flow_style=False)
     
-    console.print(f"[green]✓[/green] Set {key} = {parsed_value}")
+    console.print(f"[green]+[/green] Set {key} = {parsed_value}")
 
 
 @config.command('add-ignore')
@@ -1170,7 +1170,7 @@ def config_add_ignore(pattern):
         with open(orcrc_path, 'w') as f:
             yaml.dump(config_data, f, default_flow_style=False)
         
-        console.print(f"[green]✓[/green] Added '{pattern}' to ignore list")
+        console.print(f"[green]+[/green] Added '{pattern}' to ignore list")
     else:
         console.print(f"[yellow]![/yellow] Pattern '{pattern}' already in ignore list")
 
@@ -1204,7 +1204,7 @@ def ignore(pattern):
     with open(orcignore_path, 'a') as f:
         f.write(f'{pattern}\n')
     
-    console.print(f"[green]✓[/green] Added '{pattern}' to .orcignore")
+    console.print(f"[green]+[/green] Added '{pattern}' to .orcignore")
 
 
 @main.command()
