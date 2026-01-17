@@ -93,3 +93,11 @@ instance/
 # Test artifacts
 test_output.txt
 tmp_rovodev_*
+
+
+# Cleanup and local development (added by Phase 6)
+.backup_*/
+
+# Archive folder (local development only - future features)
+archive/
+

@@ -1,156 +1,47 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "orc-cli"
-version = "1.0.0-beta"
-description = "ORC - Optimization & Refactoring Catalyst - AI-Powered Codebase Intelligence"
+name = "orc-codebase"
+version = "1.0.0"
+description = "AI-powered codebase intelligence platform"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.8"
+license = {text = "MIT"}
 authors = [
-    {name = "ORC Team", email = "dev@orc-project.dev"}
+    {name = "ORC Team"}
 ]
-maintainers = [
-    {name = "ORC Team", email = "dev@orc-project.dev"}
-]
-keywords = [
-    "code-analysis",
-    "refactoring",
-    "optimization",
-    "ai",
-    "codebase-intelligence",
-    "static-analysis",
-    "code-quality",
-    "developer-tools"
-]
+keywords = ["code-analysis", "ai", "codebase-intelligence", "static-analysis", "optimization"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "Topic :: Software Development :: Quality Assurance",
-    "Topic :: Software Development :: Code Generators",
+    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent",
 ]
 
 dependencies = [
     "click>=8.0.0",
-    "rich>=10.0.0",
-    "networkx>=2.6.0",
     "pyyaml>=5.4.0",
-    "httpx>=0.24.0",
-    "python-dotenv>=1.0.0",
-    "dataclasses-json>=0.5.0",
-    "prompt_toolkit>=3.0.0",
-    # AI providers included by default for full CLI functionality
-    "groq>=0.5.0",
-    "openai>=1.0.0",
-    "anthropic>=0.18.0",
-    "google-generativeai>=0.4.0",
+    "networkx>=2.6.0",
+    "pygments>=2.10.0",
+    "prompt-toolkit>=3.0.0",
+    "python-dotenv>=0.19.0",
 ]
 
 [project.optional-dependencies]
-ai = [
-    "groq>=0.5.0",
-    "openai>=1.0.0",
-    "anthropic>=0.18.0",
-    "google-generativeai>=0.4.0",
-]
-web = [
-    "flask>=2.0.0",
-    "flask-login>=0.6.2",
-    "flask-sqlalchemy>=3.0.5",
-    "flask-bcrypt>=1.0.1",
-    "flask-wtf>=1.1.1",
-    "wtforms>=3.0.1",
-    "email-validator>=2.0.0",
-    "gunicorn>=20.1.0",
-]
-api = [
-    "fastapi>=0.100.0",
-    "uvicorn>=0.23.0",
-]
 dev = [
     "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "black>=23.0.0",
-    "flake8>=6.0.0",
-    "isort>=5.12.0",
+    "pytest-cov>=2.12.0",
 ]
-all = [
-    "groq>=0.5.0",
-    "openai>=1.0.0",
-    "anthropic>=0.18.0",
-    "google-generativeai>=0.4.0",
-    "flask>=2.0.0",
-    "flask-login>=0.6.2",
-    "flask-sqlalchemy>=3.0.5",
-    "flask-bcrypt>=1.0.1",
-    "flask-wtf>=1.1.1",
-    "wtforms>=3.0.1",
-    "email-validator>=2.0.0",
-    "gunicorn>=20.1.0",
-    "fastapi>=0.100.0",
-    "uvicorn>=0.23.0",
-]
-
-[project.urls]
-Homepage = "https://github.com/xytricit/orc"
-Documentation = "https://github.com/xytricit/orc/blob/main/README.md"
-Repository = "https://github.com/xytricit/orc"
-"Bug Tracker" = "https://github.com/xytricit/orc/issues"
-Changelog = "https://github.com/xytricit/orc/blob/main/CHANGELOG.md"
 
 [project.scripts]
-orc = "orc.cli_main:main"
-
-[tool.setuptools]
-include-package-data = true
-
-[tool.setuptools.packages.find]
-include = ["orc*"]
-exclude = ["tests*", "test_project*", "examples*", "docs*"]
-
-[tool.setuptools.package-data]
-orc = [
-    "web/templates/**/*.html",
-    "web/static/**/*",
-    "storage/migrations/*.sql",
-    "orc_package/config/*.yaml",
-    "*.yaml",
-    "*.yml",
-]
-
-[tool.black]
-line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
-
-[tool.isort]
-profile = "black"
-line_length = 100
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
+orc = "orc.cli.cli_main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -158,3 +49,16 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["orc"]
+omit = ["*/tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]

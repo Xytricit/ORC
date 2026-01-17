@@ -1,10 +1,23 @@
-"""Analysis package (skeleton)."""
-# Note: Main analysis modules are in orc_package.analysis
-# This is a compatibility shim
-try:
-    from .complexity import ComplexityAnalyzer
-    from .optimizer import Optimizer
-    from .security import SecurityAnalyzer
-    __all__ = ["ComplexityAnalyzer", "Optimizer", "SecurityAnalyzer"]
-except ImportError:
-    __all__ = []
+"""
+ORC Analysis Module
+
+Code analysis, metrics, and optimization suggestions.
+"""
+
+from orc.analysis.all_analyzers import (
+    Analyzer,
+    DependencyResolver,
+    DependencyGraph,
+    DeadCodeAnalyzer,
+    ComplexityAnalyzer,
+    DependencyAnalyzer
+)
+
+__all__ = [
+    'Analyzer',
+    'DependencyResolver',
+    'DependencyGraph',
+    'DeadCodeAnalyzer',
+    'ComplexityAnalyzer',
+    'DependencyAnalyzer',
+]
